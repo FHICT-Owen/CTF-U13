@@ -40,10 +40,10 @@ void setup()
 {
     Serial.begin(115200); // Initiate a serial communication
     SPI.begin(12, 13, 11, SS_PIN);
-    FastLED.addLeds<WS2812B, LED_PIN, RGB>(leds, NUM_LEDS);
+    FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
     Serial.println("Approximate your card to the reader...");
     Serial.println();
-    encryption = "2A 01 FF B2";
+    encryption = "3A FD 90 15";
     FastLED.showColor(CRGB::White);
     mfrc522.PCD_Init();
 }
