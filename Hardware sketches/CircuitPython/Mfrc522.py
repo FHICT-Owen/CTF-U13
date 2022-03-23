@@ -1,25 +1,11 @@
-"""
-CircuitPython Interface for RC522 boards.
-"""
-
 # 3rd party
+import board
 import busio
 import digitalio
 from adafruit_bus_device.spi_device import SPIDevice
 from microcontroller import Pin
 
-
 class MFRC522:
-    """
-    CircuitPython Interface for RC522 boards.
-
-    :param sck: The SPI Clock Pin. Typically ``board.SCK``.
-    :param mosi: The SPI MOSI Pin. Typically ``board.MOSI``.
-    :param miso: The SPI MISO Pin. Typically ``board.MISO``.
-    :param rst: The pin connected to the RST terminal on the RC522 board.
-    :param cs: The SPI chip select pin, connected to the SDA terminal on the RC522 board.
-    """
-
     OK = 0
     NOTAGERR = 1
     ERR = 2
@@ -194,49 +180,6 @@ class MFRC522:
 
         return stat, recv
 
-    def select_tag(self, ser):
-
-        buf = [0x93, 0x70] + ser[:5]
-        buf += self._crc(buf)
-        (stat, recv, bits) = self._tocard(0x0C, buf)
-        return self.OK if (stat == self.OK) and (bits == 0x18) else self.ERR
-
-    def auth(self, mode, addr, sect, ser):
-        return self._tocard(0x0E, [mode, addr] + sect + ser[:4])[0]
-
-    def stop_crypto1(self):
-        self._cflags(0x08, 0x08)
-
-    def read(self, addr):
-
-        data = [0x30, addr]
-        data += self._crc(data)
-        (stat, recv, _) = self._tocard(0x0C, data)
-        return recv if stat == self.OK else None
-
-    def write(self, addr, data):
-
-        buf = [0xA0, addr]
-        buf += self._crc(buf)
-        (stat, recv, bits) = self._tocard(0x0C, buf)
-
-        if not (stat == self.OK) or not (bits == 4) or not ((recv[0] & 0x0F) == 0x0A):
-            stat = self.ERR
-        else:
-            buf = []
-            for i in range(16):
-                buf.append(data[i])
-            buf += self._crc(buf)
-            (stat, recv, bits) = self._tocard(0x0C, buf)
-            if (
-                not (stat == self.OK)
-                or not (bits == 4)
-                or not ((recv[0] & 0x0F) == 0x0A)
-            ):
-                stat = self.ERR
-
-        return stat
-
     def set_antenna_gain(self, gain: int):
         """
         Set the MFRC522 Receiver Gain
@@ -265,3 +208,31 @@ class MFRC522:
 
         self._cflags(0x26, 0x07 << 4)
         self._sflags(0x26, gain & (0x07 << 4))
+
+
+rdr = MFRC522(board.IO40, board.SD_MOSI, board.SD_MISO, board.IO39, board.IO41)
+rdr.set_antenna_gain(0x04 << 4)
+
+print("")
+print("Place card before reader to read UID")
+print("")
+
+try:
+    while True:
+
+        (stat, tag_type) = rdr.request(rdr.REQIDL)
+
+        if stat == rdr.OK:
+
+            (stat, raw_uid) = rdr.anticoll()
+
+            if stat == rdr.OK:
+                print("New card detected")
+                print(
+                    "  - uid\t : %02X%02X%02X%02X"
+                    % (raw_uid[0], raw_uid[1], raw_uid[2], raw_uid[3])
+                )
+                print("")
+
+except KeyboardInterrupt:
+    print("Bye")
