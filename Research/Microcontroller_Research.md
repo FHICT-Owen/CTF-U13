@@ -1,12 +1,12 @@
 # Microcontroller Languages
 
-In order to get the capture points operational with the different peripherals like a keypad, RFID reader, lighting and buttons we'll need to use a microcontroller to control the peripherals and send data to our dashboard. The modern microcontroller we chose to work with within our group project is the ESP32-S2 that is integrated into the [LILYGO TTGO T8 ESP32-S2 with LCD](http://www.lilygo.cn/prod_view.aspx?TypeId=50062&Id=1321&FId=t3:50062:3). 
+In order to get the capture points operational with the different peripherals like a keypad, RFID reader, lighting and buttons we'll need to use a microcontroller to control the peripherals and send data to our dashboard. The modern microcontroller we chose to work with within our group project is the ESP32-S2 that is integrated into the [LILYGO TTGO T8 ESP32-S2 with LCD](http://www.lilygo.cn/prod_view.aspx?TypeId=50062&Id=1321&FId=t3:50062:3). [UPDATE 25-03] I put in the wrong link and now instead of the S2 variant of the TTGO with display we got the [LILYGO TTGO T-Display ESP32](http://www.lilygo.cn/prod_view.aspx?Id=1126) for our project.
 
-In order to program this microcontroller to do what we want we have a few possible different languages and frameworks we can use to get the results that we want. These options are:
+In order to program either of the 2 microcontrollers we have a few possible different languages and frameworks we can use to get the results that we want. These options are:
 - ESP IoT development framework (C/C++)
 - Arduino framework (C++)
 - MicroPython (Python with hardware support)
-- CircuitPython (MicroPython with some simplifications)
+- CircuitPython (Only available on S2 variant)
 
 ## Research question
 
