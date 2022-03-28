@@ -96,9 +96,13 @@ CircuitPython is an open-source derivative of the MicroPython programming langua
 
 ### 3. Development velocity
 In terms of development velocity python has a lot more to offer due to its REPL function which allows you to write and compile code on the fly. This makes it so you can even rapid prototype in Python. There are however very massive performance differences between C++ and python makes it so you would want your production code to run in C++ instead of Python. As an example, the MFRC522 sketch for CircuitPython takes about 5-7 seconds to detect an RFID card while the Arduino library equivalent running on the same board can detect that same card in a matter of Milliseconds.
+
+## Conclusion
+
+
 ## Sources
 1. [GeeksforGeeks. (2022, March 3). Differences between Python and C++. Retrieved March 23, 2022.](https://www.geeksforgeeks.org/difference-between-python-and-c/)
 2. [ESP IoT development framework. (n.d.). Espressif. Retrieved March 23, 2022.](https://www.espressif.com/en/products/sdks/esp-idf)
 3. [Arduino home page. (n.d.). Arduino. Retrieved March 23, 2022.](https://www.arduino.cc/)
 4. [Wikipedia contributors. (2022, February 27). MicroPython. Wikipedia. Retrieved March 23, 2022.](https://en.wikipedia.org/wiki/MicroPython)
-5. [Wikipedia contributors. (2022b, February 27). MicroPython. Wikipedia. Retrieved March 23, 2022.](https://en.wikipedia.org/wiki/MicroPython)
+5. [Wikipedia contributors. (2022, March 24). CircuitPython. Wikipedia. Retrieved March 23, 2022.](https://en.wikipedia.org/wiki/CircuitPython)
