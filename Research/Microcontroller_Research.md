@@ -95,10 +95,12 @@ MicroPython is a software implementation of a programming language largely compa
 CircuitPython is an open-source derivative of the MicroPython programming language targeted toward students and beginners. Development of CircuitPython is supported by Adafruit Industries <sup>[5](##Sources)</sup>. Where Arduino has the best library support out of all the selections, CircuitPython has the least amount of out of the box libraries available to it as it is not as widely adopted by creators and is based of of MicroPython specifically developed for Adafruit boards.
 
 ### 3. Development velocity
-In terms of development velocity python has a lot more to offer due to its REPL function which allows you to write and compile code on the fly. This makes it so you can even rapid prototype in Python. There are however very massive performance differences between C++ and python makes it so you would want your production code to run in C++ instead of Python. As an example, the MFRC522 sketch for CircuitPython takes about 5-7 seconds to detect an RFID card while the Arduino library equivalent running on the same board can detect that same card in a matter of Milliseconds.
+In terms of development velocity python has a lot more to offer due to its REPL function which allows you to write and compile code on the fly. This makes it so you can even rapid prototype in Python. There are however very massive performance differences between C++ and python makes it so you would want your production code to run in C++ instead of Python. As an example, the MFRC522 sketch for CircuitPython takes about 5-7 seconds to detect an RFID card while the Arduino library equivalent running on the same board can detect that same card in a matter of Milliseconds. In [this](https://github.com/FHICT-Owen/CTF-U13/tree/production/Hardware%20sketches) subfolder there are sketches available that were used for measuring performance for the T-Display and T8. 
+
+Circuitpython is only available on the T8 model and sadly not on the T-Display model, meaning that Circuitpython won't be compatible. If we want to use Python, MicroPython should be used instead. 
 
 ## Conclusion
-
+While MicroPython and CircuitPython are good options in case you want to rapidly prototype and test out new code, it is better to use an alternative to these as the interpreter needed makes your code multiple times slower compared to C++. Between ESP-IDF and Arduino the choice is also very clear, if you need the extensive configuration options and very fine control that C offers then that is the way to go, but for our current use-case it makes the most sense to use the creator-friendly Arduino platform with it's many libraries and lower skill floor. 
 
 ## Sources
 1. [GeeksforGeeks. (2022, March 3). Differences between Python and C++. Retrieved March 23, 2022.](https://www.geeksforgeeks.org/difference-between-python-and-c/)
