@@ -1,121 +1,73 @@
-﻿using System.Net.WebSockets;
-using System.Text;
-using Microsoft.IO;
+﻿using TheLightingControllerLib.Connection;
 
 namespace TheLightingControllerLib;
 
-public struct MessageWithArgs
+/// <summary>
+/// Client for interfacing with TheLightingController software.
+/// </summary>
+public class LightingControllerClient : ILightingController, IDisposable
 {
-    public Message Message;
-    public string[] Args;
-
-    public override string ToString()
-    {
-        return string.Join(LightingControllerClient.ArgSeparator, Args.Prepend(Message.Name));
-    }
-}
-
-public class LightingControllerClient : IDisposable
-{
-    public const char ArgSeparator = '|';
     private const string ClientId = "Live_Mobile_3";
-    private readonly ClientWebSocket _client = new();
 
-    private static readonly RecyclableMemoryStreamManager StreamManager = new();
+    private readonly ILightingControllerConnection _connection;
 
-    public async Task ConnectAsync(Uri uri, string password) =>
-        await ConnectAsync(uri, password, CancellationToken.None);
-    
-    public async Task ConnectAsync(Uri uri, string password, CancellationToken token)
+    public LightingControllerClient(string host, int port) : this(new LightingControllerWebsocketConnection(host, port))
     {
-        await _client.ConnectAsync(uri, token);
+    }
 
-        await SendMessageAsync(new MessageWithArgs
-        {
-            Message = Message.Hello,
-            Args = new[] {ClientId, password}
-        }, token);
+    public LightingControllerClient(ILightingControllerConnection conn)
+    {
+        _connection = conn;
+    }
 
+    public async Task ConnectAsync(string password) =>
+        await ConnectAsync(password, CancellationToken.None);
+
+    public async Task ConnectAsync(string password, CancellationToken token)
+    {
+        // Connect
+        await _connection.ConnectAsync(token);
+
+        // Send client hello
+        await SendMessageAsync(MessageType.Hello, token, ClientId, password);
+
+        // Receive server hello or error response
         var response = await ReceiveMessageAsync(token);
 
-        if (response.Message != Message.Hello)
+        if (response.MessageType == MessageType.Error)
         {
-            throw new Exception("Did not get HELLO result");
+            throw new ConnectionException($"Returned error: {response.Args[0]}");
         }
     }
 
-    public async Task SendMessageAsync(Message msg, params string[] args) =>
-        await SendMessageAsync(new MessageWithArgs {Message = msg, Args = args}, CancellationToken.None);
+    public async Task PressButton(string name) => await PressButton(name, CancellationToken.None);
 
-    public async Task SendMessageAsync(MessageWithArgs cmd) =>
-        await SendMessageAsync(cmd, CancellationToken.None);
-
-    public async Task SendMessageAsync(MessageWithArgs cmd, CancellationToken token)
+    public async Task PressButton(string name, CancellationToken token)
     {
-        if (_client.State != WebSocketState.Open)
-        {
-            // throw error
-        }
-
-        await _client.SendAsync(Encoding.UTF8.GetBytes(cmd.ToString()), WebSocketMessageType.Text, true, token);
-    }
-
-    public async Task<MessageWithArgs> ReceiveMessageAsync() => await ReceiveMessageAsync(CancellationToken.None);
-
-    public async Task<MessageWithArgs> ReceiveMessageAsync(CancellationToken token)
-    {
-        if (StreamManager.GetStream() is not RecyclableMemoryStream stream)
-        {
-            throw new Exception("Could not get memory stream");
-        }
-
-        for (;;)
-        {
-            var buf = stream.GetMemory();
-
-            var res = await _client.ReceiveAsync(buf, token);
-
-            stream.Advance(res.Count);
-
-            if (res.EndOfMessage)
-            {
-                break;
-            }
-        }
-
-        var str = Encoding.UTF8.GetString(stream.GetReadOnlySequence());
-
-        var parts = str.Split(ArgSeparator);
-        
-        await stream.DisposeAsync();
-
-        return new MessageWithArgs()
-        {
-            Message = Message.FromName(parts[0]),
-            Args = parts.Skip(1).ToArray(),
-        };
+        await SendMessageAsync(MessageType.ButtonPress, token, name);
+        await SendMessageAsync(MessageType.ButtonRelease, token);
     }
 
     public async Task CloseAsync() => await CloseAsync(CancellationToken.None);
 
-    public async Task CloseAsync(CancellationToken token)
-    {
-        try
-        {
-            await _client.CloseAsync(WebSocketCloseStatus.NormalClosure, "bye", token);
-        }
-        catch (WebSocketException e)
-        {
-            // TheLightingController does not handle disconnects gracefully
-            if (e.WebSocketErrorCode != WebSocketError.ConnectionClosedPrematurely)
-            {
-                throw;
-            }
-        }
-    }
+    public async Task CloseAsync(CancellationToken token) => await _connection.CloseAsync(token);
 
     public void Dispose()
     {
-        _client.Abort();
+        _connection.Dispose();
+    }
+
+    private async Task SendMessageAsync(MessageType type, CancellationToken token, params string[] args) =>
+        await SendMessageAsync(new Message {MessageType = type, Args = args}, token);
+
+    private async Task SendMessageAsync(Message message, CancellationToken token)
+    {
+        await _connection.SendMessageAsync(message.ToString(), token);
+    }
+
+    private async Task<Message> ReceiveMessageAsync(CancellationToken token)
+    {
+        var message = await _connection.ReceiveMessageAsync(token);
+        return Message.FromString(message);
     }
 }

@@ -1,12 +1,12 @@
 ﻿using TheLightingControllerLib;
 
-var client = new LightingControllerClient();
+var client = new LightingControllerClient("localhost", 7351);
 
 // Connect to QuickDMX with set-password "test"
-await client.ConnectAsync(new Uri("ws://localhost:7351/websocket"), "test");
+await client.ConnectAsync("test");
 
-// Set BPM To 120
-await client.SendMessageAsync(Message.Bpm, "120");
+// Press "Test" button
+await client.PressButton("test");
 
 // Disconnect
 await client.CloseAsync();
