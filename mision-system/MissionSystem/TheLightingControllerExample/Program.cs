@@ -1,6 +1,6 @@
 ﻿using TheLightingControllerLib;
 
-var client = new LightingControllerClient("localhost", 7351);
+using var client = new LightingControllerClient("localhost", 7351);
 
 // Connect to QuickDMX with set-password "test"
 await client.ConnectAsync("test");
