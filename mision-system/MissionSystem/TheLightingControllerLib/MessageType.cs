@@ -1,5 +1,8 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace TheLightingControllerLib;
 
+[ExcludeFromCodeCoverage]
 public class MessageType
 {
     private static Dictionary<string, MessageType> _messages = new();

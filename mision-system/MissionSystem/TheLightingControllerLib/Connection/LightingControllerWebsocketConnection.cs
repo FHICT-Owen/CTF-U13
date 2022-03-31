@@ -1,20 +1,26 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Net.WebSockets;
 using System.Text;
 using Microsoft.IO;
 
 namespace TheLightingControllerLib.Connection;
 
-internal class LightingControllerWebsocketConnection : ILightingControllerConnection
+public class LightingControllerWebsocketConnection : ILightingControllerConnection
 {
     private const string WebsocketPath = "/websocket";
 
     private static readonly RecyclableMemoryStreamManager StreamManager = new();
 
-    private readonly ClientWebSocket _client = new();
+    private readonly IWebsocketClient _client;
 
     private readonly Uri _uri;
 
-    public LightingControllerWebsocketConnection(string host, int port)
+    [ExcludeFromCodeCoverage]
+    public LightingControllerWebsocketConnection(string host, int port) : this(new WebsocketAdapter(), host, port)
+    {
+    }
+
+    public LightingControllerWebsocketConnection(IWebsocketClient client, string host, int port)
     {
         var builder = new UriBuilder
         {
@@ -24,6 +30,7 @@ internal class LightingControllerWebsocketConnection : ILightingControllerConnec
             Path = WebsocketPath,
         };
 
+        _client = client;
         _uri = builder.Uri;
     }
 
@@ -56,14 +63,11 @@ internal class LightingControllerWebsocketConnection : ILightingControllerConnec
             throw new ConnectionException("Not connected");
         }
 
-        if (StreamManager.GetStream() is not RecyclableMemoryStream stream)
-        {
-            throw new Exception("Could not get memory stream");
-        }
+        var stream = StreamManager.GetStream() as RecyclableMemoryStream;
 
         for (;;)
         {
-            var buf = stream.GetMemory();
+            var buf = stream!.GetMemory();
 
             var res = await _client.ReceiveAsync(buf, token);
 
@@ -93,7 +97,7 @@ internal class LightingControllerWebsocketConnection : ILightingControllerConnec
             // TheLightingController does not handle disconnects gracefully
             if (e.WebSocketErrorCode != WebSocketError.ConnectionClosedPrematurely)
             {
-                throw;
+                throw new ConnectionException("Could not close the connection", e);
             }
         }
     }
