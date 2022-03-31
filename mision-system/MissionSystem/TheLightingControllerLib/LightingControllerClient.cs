@@ -1,4 +1,5 @@
-﻿using TheLightingControllerLib.Connection;
+﻿using System.Diagnostics.CodeAnalysis;
+using TheLightingControllerLib.Connection;
 
 namespace TheLightingControllerLib;
 
@@ -11,6 +12,7 @@ public class LightingControllerClient : ILightingController, IDisposable
 
     private readonly ILightingControllerConnection _connection;
 
+    [ExcludeFromCodeCoverage]
     public LightingControllerClient(string host, int port) : this(new LightingControllerWebsocketConnection(host, port))
     {
     }
@@ -45,7 +47,7 @@ public class LightingControllerClient : ILightingController, IDisposable
     public async Task PressButton(string name, CancellationToken token)
     {
         await SendMessageAsync(MessageType.ButtonPress, token, name);
-        await SendMessageAsync(MessageType.ButtonRelease, token);
+        await SendMessageAsync(MessageType.ButtonRelease, token, name);
     }
 
     public async Task CloseAsync() => await CloseAsync(CancellationToken.None);
