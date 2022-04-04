@@ -3,6 +3,5 @@
 public interface IGameTimerService
 {
     public ITimer CreateTimer(int durationInSeconds);
-    public void DeleteTimer(Timer timer);
-    public void OnTick();
+    public void DeleteTimer(ITimer timer);
 }

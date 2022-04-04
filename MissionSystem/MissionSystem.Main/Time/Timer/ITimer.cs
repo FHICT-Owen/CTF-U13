@@ -2,11 +2,11 @@
 
 public interface ITimer
 {
-    public event EventHandler<Timer> Start;
-    public event EventHandler<Timer> Update;
-    public event EventHandler<Timer> Stop;
-    public event EventHandler<Timer> Pause;
-    public event EventHandler<Timer> Continue;
+    public event EventHandler<ITimer> Start;
+    public event EventHandler<ITimer> Update;
+    public event EventHandler<ITimer> Stop;
+    public event EventHandler<ITimer> Pause;
+    public event EventHandler<ITimer> Continue;
 
     public int Time { get; }
     public int? TimeRemaining { get; }
@@ -19,4 +19,5 @@ public interface ITimer
     public void StopTimer();
     public void PauseTimer();
     public void ContinueTimer();
+    public void OnTick(object? sender, EventArgs e);
 }

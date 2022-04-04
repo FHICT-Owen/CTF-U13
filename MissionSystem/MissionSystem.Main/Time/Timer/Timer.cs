@@ -1,13 +1,13 @@
 ﻿namespace MissionSystem.Main.Time;
 
-public class Timer : ITimer
+public class Timer : EventArgs, ITimer
 {
-    public event EventHandler<Timer>? Update;
+    public event EventHandler<ITimer>? Update;
 
-    public event EventHandler<Timer>? Start;
-    public event EventHandler<Timer>? Stop;
-    public event EventHandler<Timer>? Pause;
-    public event EventHandler<Timer>? Continue;
+    public event EventHandler<ITimer>? Start;
+    public event EventHandler<ITimer>? Stop;
+    public event EventHandler<ITimer>? Pause;
+    public event EventHandler<ITimer>? Continue;
 
 
     private int _Time = 0;
@@ -32,7 +32,7 @@ public class Timer : ITimer
         _TotalDuration = totalDuration;
     }
 
-    public void OnTick(GameTimerService service)
+    public void OnTick(object? sender, EventArgs e)
     {
         if (TimeRemaining <= 0)
         {
@@ -41,7 +41,7 @@ public class Timer : ITimer
         }
 
         this._Time++;
-        Update?.Invoke(service, this);
+        Update?.Invoke(sender, this);
     }
 
     public void StartTimer()

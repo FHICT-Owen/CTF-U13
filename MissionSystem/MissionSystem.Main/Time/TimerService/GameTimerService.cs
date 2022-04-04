@@ -2,7 +2,12 @@
 
 public class GameTimerService : IGameTimerService
 {
-    private List<Timer> _timers = new();
+    private List<ITimer> _timers = new();
+
+    public GameTimerService(ITicker ticker)
+    {
+        ticker.Tick += OnTick;
+    }
 
     public ITimer CreateTimer(int durationInSeconds)
     {
@@ -13,18 +18,18 @@ public class GameTimerService : IGameTimerService
         return timer;
     }
 
-    public void DeleteTimer(Timer timer)
+    public void DeleteTimer(ITimer timer)
     {
         _timers.Remove(timer);
     }
 
-    public void OnTick()
+    private void OnTick(object? sender, EventArgs e)
     {
         foreach (var timer in _timers)
         {
             if (timer.IsRunning)
             {
-                timer.OnTick(this);
+                timer.OnTick(this, e);
             }
         }
     }
