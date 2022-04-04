@@ -5,6 +5,8 @@
         <Nullable>enable</Nullable>
 
         <IsPackable>false</IsPackable>
+
+        <RootNamespace>TheLightingControllerTests</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
@@ -16,7 +18,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\TheLightingControllerLib\TheLightingControllerLib.csproj" />
+      <ProjectReference Include="..\TheLightingController.Lib\TheLightingController.Lib.csproj" />
     </ItemGroup>
 
 </Project>

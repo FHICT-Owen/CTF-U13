@@ -11,6 +11,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MissionSystem.Main", "Missi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MissionSystem.MqttBroker", "MissionSystem.MqttBroker\MissionSystem.MqttBroker.csproj", "{2E60DCA8-EF73-41E8-A81D-74EE5F48177C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheLightingController.Lib", "TheLightingController.Lib\TheLightingController.Lib.csproj", "{BE842215-5D11-45B5-884C-3F523FBE73C4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheLightingController.Tests", "TheLightingController.Tests\TheLightingController.Tests.csproj", "{69F9A5AE-5CE4-41CB-878B-BD6485B81DAD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheLightingController.Example", "TheLightingController.Example\TheLightingController.Example.csproj", "{98C347C5-1929-4423-BC5C-5F5FEF1D308E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +39,18 @@ Global
 		{2E60DCA8-EF73-41E8-A81D-74EE5F48177C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2E60DCA8-EF73-41E8-A81D-74EE5F48177C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2E60DCA8-EF73-41E8-A81D-74EE5F48177C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BE842215-5D11-45B5-884C-3F523FBE73C4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BE842215-5D11-45B5-884C-3F523FBE73C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BE842215-5D11-45B5-884C-3F523FBE73C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BE842215-5D11-45B5-884C-3F523FBE73C4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{69F9A5AE-5CE4-41CB-878B-BD6485B81DAD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{69F9A5AE-5CE4-41CB-878B-BD6485B81DAD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{69F9A5AE-5CE4-41CB-878B-BD6485B81DAD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{69F9A5AE-5CE4-41CB-878B-BD6485B81DAD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{98C347C5-1929-4423-BC5C-5F5FEF1D308E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{98C347C5-1929-4423-BC5C-5F5FEF1D308E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{98C347C5-1929-4423-BC5C-5F5FEF1D308E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{98C347C5-1929-4423-BC5C-5F5FEF1D308E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
