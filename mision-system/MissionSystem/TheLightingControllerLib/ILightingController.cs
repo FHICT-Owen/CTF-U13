@@ -25,7 +25,7 @@ public interface ILightingController
     /// <param name="name">The button to press</param>
     /// <returns></returns>
     public Task PressButton(string name);
-    
+
     /// <summary>
     /// Simulates a short press of the given button.
     /// </summary>
@@ -33,6 +33,21 @@ public interface ILightingController
     /// <param name="token"></param>
     /// <returns></returns>
     public Task PressButton(string name, CancellationToken token);
+    
+    /// <summary>
+    /// Updates the BPM (beats-per-minute).
+    /// </summary>
+    /// <param name="bpm">The BPM to update to</param>
+    /// <returns></returns>
+    public Task UpdateBpm(int bpm);
+    
+    /// <summary>
+    /// Updates the BPM (beats-per-minute).
+    /// </summary>
+    /// <param name="bpm">The BPM to update to</param>
+    /// <param name="token"></param>
+    /// <returns></returns>
+    public Task UpdateBpm(int bpm, CancellationToken token);
 
     /// <summary>
     /// Closes the connection with the lighting controller

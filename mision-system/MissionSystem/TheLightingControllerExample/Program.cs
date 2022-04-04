@@ -6,7 +6,7 @@ using var client = new LightingControllerClient("localhost", 7351);
 await client.ConnectAsync("test");
 
 // Press "Test" button
-await client.PressButton("test");
+await client.UpdateBpm(120);
 
 // Disconnect
 await client.CloseAsync();
