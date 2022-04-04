@@ -11,6 +11,9 @@ Test test = new Test();
 
 var builder = WebApplication.CreateBuilder(args);
 
+// For overriding appsettings
+builder.Configuration.AddJsonFile("appsettings.User.json", true);
+
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
