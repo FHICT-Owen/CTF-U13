@@ -1,8 +1,11 @@
-﻿namespace MissionSystem.Main.Time;
+﻿using MissionSystem.Interface;
+using MissionSystem.Interface.Timer;
+
+namespace MissionSystem.Main.Time;
 
 public class GameTimerService : IGameTimerService
 {
-    private List<ITimer> _timers = new();
+    private List<Timer> _timers = new();
 
     public GameTimerService(ITicker ticker)
     {
@@ -15,12 +18,12 @@ public class GameTimerService : IGameTimerService
 
         _timers.Add(timer);
 
-        return timer;
+        return timer as ITimer;
     }
 
     public void DeleteTimer(ITimer timer)
     {
-        _timers.Remove(timer);
+        _timers.Remove(timer as Timer);
     }
 
     private void OnTick(object? sender, EventArgs e)

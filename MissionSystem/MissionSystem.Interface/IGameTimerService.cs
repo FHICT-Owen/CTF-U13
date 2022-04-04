@@ -1,4 +1,6 @@
-﻿namespace MissionSystem.Main.Time;
+﻿using MissionSystem.Interface.Timer;
+
+namespace MissionSystem.Interface;
 
 public interface IGameTimerService
 {

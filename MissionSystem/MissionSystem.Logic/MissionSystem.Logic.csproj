@@ -8,8 +8,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MissionSystem.Interface\MissionSystem.Interface.csproj" />
-    <ProjectReference Include="..\MissionSystem.Logic.CTF\MissionSystem.Logic.CTF.csproj" />
-    <ProjectReference Include="..\MissionSystem.MqttBroker\MissionSystem.MqttBroker.csproj" />
   </ItemGroup>
 
 </Project>

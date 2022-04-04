@@ -1,13 +1,15 @@
-﻿namespace MissionSystem.Main.Time;
+﻿using MissionSystem.Interface.Timer;
+
+namespace MissionSystem.Main.Time;
 
 public class Timer : EventArgs, ITimer
 {
-    public event EventHandler<ITimer>? Update;
+    public event EventHandler? Update;
 
-    public event EventHandler<ITimer>? Start;
-    public event EventHandler<ITimer>? Stop;
-    public event EventHandler<ITimer>? Pause;
-    public event EventHandler<ITimer>? Continue;
+    public event EventHandler? Start;
+    public event EventHandler? Stop;
+    public event EventHandler? Pause;
+    public event EventHandler? Continue;
 
 
     private int _Time = 0;
@@ -84,5 +86,27 @@ public class Timer : EventArgs, ITimer
 
         _IsRunning = true;
         Continue?.Invoke(this, this);
+    }
+
+    public override string ToString()
+    {
+        if (TimeRemaining == null) return "00:00";
+        else
+        {
+            string str = "";
+            if ((int)TimeRemaining > 3600) str += (int)TimeRemaining / 3600 + ":";
+
+            int minutes = (int)TimeRemaining % 3600 / 60;
+
+            if (minutes < 10) str += "0" + minutes + ":";
+            else str += minutes + ":";
+
+            int seconds = (int)TimeRemaining % 60;
+
+            if (seconds < 10) str += "0" + seconds;
+            else str += seconds;
+            
+            return str;
+        }
     }
 }

@@ -37,5 +37,7 @@ public class MQTTBroker : IMQTTBroker
         Console.WriteLine("New connection: ClientId = {0}, Endpoint = {1}",
                 context.ClientId,
                 context.Endpoint);
+
     }
+
 }
