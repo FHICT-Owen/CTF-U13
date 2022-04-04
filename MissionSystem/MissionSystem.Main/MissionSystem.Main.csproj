@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MQTTnet" Version="3.1.2" />
+    <PackageReference Include="Serilog" Version="2.10.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Gadgets\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MissionSystem.Factory\MissionSystem.Factory.csproj" />
+    <ProjectReference Include="..\MissionSystem.MqttBroker\MissionSystem.MqttBroker.csproj" />
+  </ItemGroup>
+
+</Project>
