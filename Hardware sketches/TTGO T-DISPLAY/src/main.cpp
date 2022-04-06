@@ -89,16 +89,12 @@ void setup()
 
     if (isCodeGame)
     {
-        teamROG = "1";
-        teamSFA = "2";
         passwordLength = 1;
         Serial.println("Enter code on the keypad...");
         tft.drawString("Enter code", tft.width() / 2 - 65, tft.height() / 2 - 5);
     }
     else
     {
-        teamROG = "3A FD 90 15";
-        teamSFA = "2A 01 FF B2";
         Serial.println("Approximate your card to the reader...");
         tft.drawString("Approximate card", tft.width() / 2 - 95, tft.height() / 2 - 5);
     }
@@ -107,6 +103,17 @@ void setup()
 
 void loop()
 {
+    if (isCodeGame)
+    {
+        teamROG = "1";
+        teamSFA = "2";
+    }
+    else
+    {
+        teamROG = "3A FD 90 15";
+        teamSFA = "2A 01 FF B2";
+    }
+
     button.loop();
     changeGame.loop();
     if (changeGame.isPressed()) {
