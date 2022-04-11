@@ -1,4 +1,9 @@
 ﻿@page "/"
+@implements IDisposable
+@using MissionSystem.Main.Gadgets
+@using System.Net.NetworkInformation
+@inject IGadgetStateService _gadgets
+@inject ILogger<Index> _logger
 
 <PageTitle>Index</PageTitle>
 
@@ -7,3 +12,40 @@
 Welcome to your new app.
 
 <SurveyPrompt Title="How is Blazor working for you?" />
+
+<h1>Flag captured by: @_capturedBy</h1>
+
+@code {
+    private string _capturedBy = "";
+
+    private IDisposable? _subscription;
+
+    protected override void OnInitialized()
+    {
+        _subscription = _gadgets.StateUpdatesOf(PhysicalAddress.Parse("92-22-21-82-1D-31"), OnFlagUpdate);
+        
+    }
+    
+    private void OnFlagUpdate(Dictionary<string, object> state)
+    {
+        try
+        {
+            var flagState = FlagState.FromRaw(state);
+
+            _capturedBy = flagState.CapturedBy;
+            InvokeAsync(StateHasChanged);
+        }
+        catch (Exception e)
+        {
+            // TODO: should log or something
+            _logger.LogError("Could not parse flag state");
+        }
+    }
+
+    public void Dispose()
+    {
+        _logger.LogInformation("Dispose");
+        _subscription?.Dispose();
+    }
+
+}
