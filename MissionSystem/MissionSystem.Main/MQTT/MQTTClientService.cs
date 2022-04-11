@@ -1,34 +1,56 @@
-﻿using MissionSystem.Main.MQTT;
-using MQTTnet.Client;
-using System.Text;
+﻿using System.Text;
+using MissionSystem.Main.MQTT.Client;
 
 namespace MissionSystem.Main.MQTT;
-public class MQTTClientService : IHostedService, IDisposable
+
+public class MqttClientService : IMqttClientService, IDisposable
 {
+    private readonly IDurableMqttClient _client;
 
-    public Task StartAsync(CancellationToken cancellationToken)
+    private readonly ILogger<MqttClientService> _logger;
+
+    private const string Host = "localhost";
+    private const int Port = 1883;
+
+    public MqttClientService(ILogger<MqttClientService> logger)
     {
-        MQTTClient client = new MQTTClient();
+        _logger = logger;
 
-        client.SetSubscribeTopic("#");
-
-        client.Client.UseApplicationMessageReceivedHandler(async e =>
-        {
-            Console.WriteLine(Encoding.UTF8.GetString(e.ApplicationMessage.Payload));
-        });
-
-        client.ConnectAsync();
-
-        return Task.CompletedTask;
+        _client = new DurableMqttClient(host: Host, port: Port);
+        
+        _client.Connect += ClientOnConnect;
+        _client.Disconnect += ClientOnDisconnect;
     }
 
-    public Task StopAsync(CancellationToken cancellationToken)
+
+    private void ClientOnConnect()
     {
-        throw new NotImplementedException();
+        _logger.LogInformation("Connected to mqtt://{}:{}", Host, Port);
+    }
+    
+    private void ClientOnDisconnect()
+    {
+        _logger.LogInformation("Disconnected from MQTT server");
+    }
+
+    public async Task StartAsync(CancellationToken cancellationToken)
+    {
+       await _client.ConnectAsync();
+    }
+
+    public async Task StopAsync(CancellationToken cancellationToken)
+    {
+        await _client.CloseAsync();
     }
 
     public void Dispose()
     {
-        throw new NotImplementedException();
+        _client.Dispose();
+    }
+
+    public async Task SubscribeAsync(string topic, IDurableMqttClient.MessageCallback callback)
+    {
+        _logger.LogInformation("Subscribed to MQTT topic {}", topic);
+        await _client.SubscribeTopic(topic, callback);
     }
 }
