@@ -3,11 +3,9 @@ using MissionSystem.Main.MQTT;
 
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+
 using MissionSystem.Interface;
 using MissionSystem.Factory;
-using MissionSystem.Main;
-
-Test test = new Test();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,7 +15,10 @@ builder.Configuration.AddJsonFile("appsettings.User.json", true);
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-builder.Services.AddHostedService<Ticker>();
+builder.Services.AddSingleton<ITicker, Ticker>();
+builder.Services.AddHostedService(provider => provider.GetRequiredService<ITicker>());
+
+builder.Services.AddSingleton<GameTimerService>();
 
 builder.Services.AddScoped<MQTTBrokerFactory>();
 builder.Services.AddHostedService<IMQTTBroker>((provider) => MQTTBrokerFactory.GetMQTTBroker());

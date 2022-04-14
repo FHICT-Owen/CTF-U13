@@ -1,0 +1,33 @@
+﻿@page "/dashboard"
+
+<PageTitle>Dashboard</PageTitle>
+
+@using MissionSystem.Main.Time
+@using MissionSystem.Interface.Timer
+@inject GameTimerService gameTimerService
+
+<h1>Dashboard</h1>
+
+<p role="status">Timer information: @(_timer?.ToString() ?? "-10")</p>
+
+<button class="btn btn-primary" @onclick="NewTimer">Click to get a new timer!</button>
+
+@code {
+    private ITimer? _timer;
+
+    private void OnTick(object? sender, EventArgs e)
+    {
+        InvokeAsync(StateHasChanged);
+        Console.WriteLine(_timer);
+    }
+
+    private void NewTimer()
+    {
+        if (_timer != null) gameTimerService.DeleteTimer(_timer);
+
+        _timer = gameTimerService.CreateTimer(20);
+        _timer.Update += OnTick;
+
+        _timer.StartTimer();
+    }
+}

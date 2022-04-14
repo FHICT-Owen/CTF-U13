@@ -1,13 +1,15 @@
-﻿namespace MissionSystem.Main.Time;
+﻿using MissionSystem.Interface.Timer;
 
-public class Timer : ITimer
+namespace MissionSystem.Main.Time;
+
+public class Timer : EventArgs, ITimer
 {
-    public event EventHandler<Timer>? Update;
+    public event EventHandler? Update;
 
-    public event EventHandler<Timer>? Start;
-    public event EventHandler<Timer>? Stop;
-    public event EventHandler<Timer>? Pause;
-    public event EventHandler<Timer>? Continue;
+    public event EventHandler? Start;
+    public event EventHandler? Stop;
+    public event EventHandler? Pause;
+    public event EventHandler? Continue;
 
 
     private int _Time = 0;
@@ -32,7 +34,7 @@ public class Timer : ITimer
         _TotalDuration = totalDuration;
     }
 
-    public void OnTick(GameTimerService service)
+    public void OnTick(object? sender, EventArgs e)
     {
         if (TimeRemaining <= 0)
         {
@@ -41,7 +43,7 @@ public class Timer : ITimer
         }
 
         this._Time++;
-        Update?.Invoke(service, this);
+        Update?.Invoke(sender, this);
     }
 
     public void StartTimer()
@@ -84,5 +86,27 @@ public class Timer : ITimer
 
         _IsRunning = true;
         Continue?.Invoke(this, this);
+    }
+
+    public override string ToString()
+    {
+        if (TimeRemaining == null) return "00:00";
+        else
+        {
+            string str = "";
+            if ((int)TimeRemaining > 3600) str += (int)TimeRemaining / 3600 + ":";
+
+            int minutes = (int)TimeRemaining % 3600 / 60;
+
+            if (minutes < 10) str += "0" + minutes + ":";
+            else str += minutes + ":";
+
+            int seconds = (int)TimeRemaining % 60;
+
+            if (seconds < 10) str += "0" + seconds;
+            else str += seconds;
+            
+            return str;
+        }
     }
 }
