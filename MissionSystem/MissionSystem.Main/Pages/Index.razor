@@ -23,7 +23,6 @@ Welcome to your new app.
     protected override void OnInitialized()
     {
         _subscription = _gadgets.StateUpdatesOf(PhysicalAddress.Parse("92-22-21-82-1D-31"), OnFlagUpdate);
-        
     }
     
     private void OnFlagUpdate(Dictionary<string, object> state)
@@ -44,7 +43,6 @@ Welcome to your new app.
 
     public void Dispose()
     {
-        _logger.LogInformation("Dispose");
         _subscription?.Dispose();
     }
 
