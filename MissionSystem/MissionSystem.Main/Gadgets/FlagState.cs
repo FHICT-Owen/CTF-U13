@@ -2,8 +2,8 @@ namespace MissionSystem.Main.Gadgets;
 
 public struct FlagState
 {
-    public bool BeingCaptured;
-    public string CapturedBy;
+    public long CapturePercentage;
+    public long CapturedBy;
     
     public static FlagState FromRaw(Dictionary<string, object> msg)
     {
@@ -11,8 +11,8 @@ public struct FlagState
         {
             return new FlagState
             {
-                BeingCaptured = msg["beingCaptured"] as bool? ?? false,
-                CapturedBy = msg["capturedBy"] as string ?? string.Empty
+                CapturePercentage = msg["capturePercentage"] as long? ?? 0,
+                CapturedBy = msg["capturer"] as long? ?? 0
             };
         }
         catch (KeyNotFoundException e)

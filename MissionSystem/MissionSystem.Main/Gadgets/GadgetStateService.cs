@@ -18,7 +18,7 @@ public class GadgetStateService : IGadgetStateService
 
         // TODO: get devices from GadgetService, subscribe to all
         // TODO: also subscribe to updates
-        SubscribeToDevice(PhysicalAddress.Parse("92-22-21-82-1D-31"));
+        SubscribeToDevice(PhysicalAddress.Parse("44:17:93:87:D3:DC"));
     }
 
     public Unsubscribable StateUpdatesOf(PhysicalAddress device, IGadgetStateService.StateCallback callback)
@@ -40,7 +40,7 @@ public class GadgetStateService : IGadgetStateService
 
     private void SubscribeToDevice(PhysicalAddress address)
     {
-        _mqtt.SubscribeAsync($"gadgets/{address}/state", message => HandleMessage(address, message));
+        _mqtt.SubscribeAsync($"gadgets/{formatMac(address)}/state", message => HandleMessage(address, message));
     }
 
     private void HandleMessage(PhysicalAddress address, Dictionary<string, object> msg)
@@ -53,5 +53,11 @@ public class GadgetStateService : IGadgetStateService
         {
             cb(_states[address]);
         }
+    }
+
+    private static string formatMac(PhysicalAddress addr)
+    {
+        var bytes = addr.GetAddressBytes();
+        return string.Join(":", bytes.Select(z => z.ToString("X2")).ToArray());
     }
 }
