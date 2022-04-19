@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Components.Web;
 
 using MissionSystem.Interface;
 using MissionSystem.Factory;
+using MissionSystem.Main.Gadgets;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,7 +24,9 @@ builder.Services.AddSingleton<GameTimerService>();
 builder.Services.AddScoped<MQTTBrokerFactory>();
 builder.Services.AddHostedService<IMQTTBroker>((provider) => MQTTBrokerFactory.GetMQTTBroker());
 
-builder.Services.AddHostedService<MQTTClientService>();
+builder.Services.AddSingleton<IMqttClientService, MqttClientService>();
+builder.Services.AddHostedService(provider => provider.GetRequiredService<IMqttClientService>());
+builder.Services.AddSingleton<IGadgetStateService, GadgetStateService>();
 
 var app = builder.Build();
 
