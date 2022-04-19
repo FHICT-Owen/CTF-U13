@@ -106,3 +106,7 @@ a, .btn-link {
     justify-content: center;
     gap: 10px;
 }
+
+.controls button {
+    width: 10ch;
+}
