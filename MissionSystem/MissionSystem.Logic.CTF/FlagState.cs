@@ -1,9 +1,9 @@
-namespace MissionSystem.Main.Gadgets;
+namespace MissionSystem.Logic.CTF;
 
 public struct FlagState
 {
     public long CapturePercentage;
-    public long CapturedBy;
+    public long Capturer;
     
     public static FlagState FromRaw(Dictionary<string, object> msg)
     {
@@ -12,7 +12,7 @@ public struct FlagState
             return new FlagState
             {
                 CapturePercentage = msg["capturePercentage"] as long? ?? 0,
-                CapturedBy = msg["capturer"] as long? ?? 0
+                Capturer = msg["capturer"] as long? ?? 0
             };
         }
         catch (KeyNotFoundException e)

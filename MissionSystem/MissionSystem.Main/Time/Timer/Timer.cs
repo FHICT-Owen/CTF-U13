@@ -61,11 +61,10 @@ public class Timer : EventArgs, ITimer
 
     public void StopTimer()
     {
-        if (!IsRunning) return;
-
         if (StartTime != null)
         {
             _EndTime = DateTime.Now;
+            _Time = TotalDuration;
         }
 
         _IsRunning = false;

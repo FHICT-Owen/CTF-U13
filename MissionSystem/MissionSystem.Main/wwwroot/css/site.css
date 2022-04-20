@@ -12,6 +12,13 @@ a, .btn-link {
     color: #0071c1;
 }
 
+.timer {
+    background-color: #eeeeee;
+    width: fit-content;
+    padding: 30px;
+    border-radius: 20px;
+}
+
 .btn-primary {
     color: #fff;
     background-color: #1b6ec2;

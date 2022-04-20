@@ -1,8 +1,12 @@
-﻿@page "/"
+@page "/"
 @using MissionSystem.Main.Gadgets
+@using MissionSystem.Interface
+@using Newtonsoft.Json
 @using System.Net.NetworkInformation
 @implements IDisposable
 @inject IGadgetStateService _gadgets
+
+@inject IGameService _game
 @inject ILogger<Index> _logger
 
 <PageTitle>CTF Demo</PageTitle>
@@ -77,6 +81,34 @@
             _logger.LogError("Could not parse flag state");
         }
     }
+
+    //private void OnFlagUpdate(Dictionary<string, object> state)
+    //{
+    //    try
+    //    {
+    //        var flagState = FlagState.FromRaw(state);
+
+    //        switch (flagState.Capturer)
+    //        {
+    //            case 0:
+    //                _capturedBy = "none";
+    //                break;
+    //            case 1:
+    //                _capturedBy = "Team 1";
+    //                break;
+    //            case 2:
+    //                _capturedBy = "Team 2";
+    //                break;
+    //        }
+
+    //        InvokeAsync(StateHasChanged);
+    //    }
+    //    catch (Exception e)
+    //    {
+    //        // TODO: should log or something
+    //        _logger.LogError("Could not parse flag state");
+    //    }
+    //}
 
     public void Dispose()
     {
