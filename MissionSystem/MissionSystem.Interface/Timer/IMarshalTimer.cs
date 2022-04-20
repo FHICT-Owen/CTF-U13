@@ -1,8 +1,6 @@
 ﻿namespace MissionSystem.Interface.Timer;
-public interface IMarshalTimer : IBaseTimer
+public interface IMarshalTimer : IGameTimer
 {
     public void StartTimer();
-    public void StopTimer();
-    public void PauseTimer();
     public void ContinueTimer();
 }

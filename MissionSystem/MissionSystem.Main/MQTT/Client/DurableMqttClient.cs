@@ -67,7 +67,7 @@ namespace MissionSystem.Main.MQTT.Client
                         messageCallback(obj);
                     }
                 }
-                catch (JsonException e)
+                catch (JsonException)
                 {
                     Console.Error.WriteLine("Could not deserialize message on topic {0}", args.ApplicationMessage.Topic);
                 }

@@ -1,6 +1,8 @@
+using MissionSystem.Interface;
+
 namespace MissionSystem.Main.Gadgets;
 
-public class Unsubscribable : IDisposable
+public class Unsubscribable : IUnsubscribable
 {
     private readonly IGadgetStateService.StateCallback _callback;
 

@@ -13,11 +13,16 @@ public partial class MainWindow : Window
     int currentTeam = 0;
     int capturedAmount = 1;
     int capturedTeam = 0;
+    bool newCapture = true;
+
 
     MQTTClient client;
 
     private readonly string CODERED = "1234";
     private readonly string CODEBLUE = "5678";
+
+    Timer buttonTimer;
+
 
     public MainWindow()
     {
@@ -111,84 +116,64 @@ public partial class MainWindow : Window
 
         if (_currentCode.Length < CODERED.Length && _currentCode.Length < CODEBLUE.Length) return;
 
-        new Timer(temp =>
-        {
-            CheckCode(sender, e);
-        }, null, 1000, 0);
+        CheckCode(sender, e);
     }
 
     private void CheckCode(object sender, RoutedEventArgs e)
     {
         if (_currentCode == CODERED)
         {
-            this.Dispatcher.Invoke(() =>
-            {
-                Label.Content = "Correct code for team Red!\nStart Capturing!";
+            Label.Content = "Correct code for team Red!\nStart Capturing!";
 
-                switch (capturedTeam)
-                {
-                    case 0:
-                        ProgressBar.Background = new SolidColorBrush(Color.FromRgb(230, 230, 230));
-                        break;
-                    case 1:
-                        ProgressBar.Background = new SolidColorBrush(Color.FromRgb(255, 0, 0));
-                        break;
-                    case 2:
-                        ProgressBar.Background = new SolidColorBrush(Color.FromRgb(15, 159, 242));
-                        break;
-                }
+            SetBackGround();
 
-                ProgressBar.Foreground = new SolidColorBrush(Color.FromRgb(255, 0, 0));
-                currentTeam = 1;
+            ProgressBar.Foreground = new SolidColorBrush(Color.FromRgb(255, 0, 0));
+            currentTeam = 1;
 
-                if (currentTeam != capturedTeam) capturedAmount = 1;
-                _currentCode = "";
+            if (currentTeam != capturedTeam) capturedAmount = 1;
+            _currentCode = "";
 
-                ProgressBar.Value = capturedAmount;
+            ProgressBar.Value = capturedAmount;
 
 
-            });
         }
         else if (_currentCode == CODEBLUE)
         {
-            this.Dispatcher.Invoke(() =>
-            {
-                Label.Content = "Correct code for team Blue!\nStart Capturing!";
 
-                switch (capturedTeam)
-                {
-                    case 0:
-                        ProgressBar.Background = new SolidColorBrush(Color.FromRgb(230, 230, 230));
-                        break;
-                    case 1:
-                        ProgressBar.Background = new SolidColorBrush(Color.FromRgb(255, 0, 0));
-                        break;
-                    case 2:
-                        ProgressBar.Background = new SolidColorBrush(Color.FromRgb(15, 159, 242));
-                        break;
-                }
+            Label.Content = "Correct code for team Blue!\nStart Capturing!";
 
-                ProgressBar.Foreground = new SolidColorBrush(Color.FromRgb(15, 159, 242));
-                currentTeam = 2;
-                if (currentTeam != capturedTeam) capturedAmount = 1;
-                _currentCode = "";
-                ProgressBar.Value = capturedAmount;
+            SetBackGround();
 
+            ProgressBar.Foreground = new SolidColorBrush(Color.FromRgb(15, 159, 242));
+            currentTeam = 2;
+            if (currentTeam != capturedTeam) capturedAmount = 1;
+            _currentCode = "";
+            ProgressBar.Value = capturedAmount;
 
-            });
         }
         else
         {
             _currentCode = "";
-            this.Dispatcher.Invoke(() =>
-            {
-                Label.Content = "Wrong code! Try again!";
-                currentTeam = 0;
-            });
+            Label.Content = "Wrong code! Try again!";
+            currentTeam = 0;
         }
     }
 
-    Timer buttonTimer;
+    private void SetBackGround()
+    {
+        switch (capturedTeam)
+        {
+            case 0:
+                ProgressBar.Background = new SolidColorBrush(Color.FromRgb(230, 230, 230));
+                break;
+            case 1:
+                ProgressBar.Background = new SolidColorBrush(Color.FromRgb(255, 0, 0));
+                break;
+            case 2:
+                ProgressBar.Background = new SolidColorBrush(Color.FromRgb(15, 159, 242));
+                break;
+        }
+    }
 
     private void Button_Mouse_Up(object sender, MouseButtonEventArgs e)
     {
@@ -201,10 +186,8 @@ public partial class MainWindow : Window
 
     }
 
-    bool newCapture = true;
-
     private void Button_Mouse_Down(object sender, MouseButtonEventArgs e)
-    { 
+    {
         if (currentTeam == 0) return;
         if (currentTeam != capturedTeam)
         {
@@ -213,36 +196,38 @@ public partial class MainWindow : Window
         }
         buttonTimer = new Timer(e =>
         {
-            if (capturedAmount < 100 && capturedAmount % 10 == 0)
+            if (capturedAmount % 10 == 0)
             {
                 State state = new State { capturePercentage = capturedAmount, capturer = currentTeam };
+
                 string str = JsonConvert.SerializeObject(state);
                 MqttApplicationMessage message = new MqttApplicationMessageBuilder().WithPayload(JsonConvert.SerializeObject(state))
-                .WithTopic("gadget/01234567890A/state")
+                .WithTopic("gadgets/01:23:45:67:89:0A/state")
                 .Build();
-                client.Client.PublishAsync(message, CancellationToken.None);
-                capturedAmount++;
-            } else if (capturedAmount < 100)
+
+                if (newCapture) client.Client.PublishAsync(message, CancellationToken.None);
+            }
+
+            if (capturedAmount < 100)
             {
                 capturedAmount++;
+                Dispatcher.Invoke(() =>
+                {
+                    ProgressBar.Value = capturedAmount;
+                });
+
             }
-            if (capturedAmount >= 100) this.Dispatcher.Invoke(() =>
+            else
             {
                 capturedTeam = currentTeam;
-                Label.Content = "Captured!";
 
-                State state = new State { capturePercentage = 100, capturer = capturedTeam };
-                
-                MqttApplicationMessage message = new MqttApplicationMessageBuilder().WithPayload(JsonConvert.SerializeObject(state))
-                .WithTopic("gadget/01234567890A/state")
-                .Build();
-                if (newCapture) client.Client.PublishAsync(message, CancellationToken.None);
+                Dispatcher.Invoke(() =>
+                {
+                    Label.Content = "Captured!";
+                });
+
                 newCapture = false;
-            });
-            else this.Dispatcher.Invoke(() =>
-            {
-                ProgressBar.Value = capturedAmount;
-            });
+            }
         }, null, 0, 50);
     }
 }

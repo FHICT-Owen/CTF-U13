@@ -7,6 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MissionSystem.Interface\MissionSystem.Interface.csproj" />
     <ProjectReference Include="..\MissionSystem.Logic\MissionSystem.Logic.csproj" />
   </ItemGroup>
 
