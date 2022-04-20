@@ -1,5 +1,5 @@
-<div class="progress">
-    <div class="progress-bar" role="progressbar" style="width: @Progress%; background-color: @Color" aria-valuenow="@Progress" aria-valuemin="0" aria-valuemax="100"></div>
+<div class="progress" style="background-color: @BackgroundColor">
+    <div class="progress-bar" role="progressbar" style="width: @Progress%; background-color: @ForegroundColor;" aria-valuenow="@Progress" aria-valuemin="0" aria-valuemax="100"></div>
 </div>
 
 @code {
@@ -8,5 +8,8 @@
     public long Progress { get; set; } = 0;
     
     [Parameter]
-    public string Color { get; set; }
+    public string BackgroundColor { get; set; }
+
+    [Parameter]
+    public string ForegroundColor { get; set; }
 }
