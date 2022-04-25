@@ -15,8 +15,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MissionSystem.Logic.CTF", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MissionSystem.Logic", "MissionSystem.Logic\MissionSystem.Logic.csproj", "{83A76910-82A7-4286-8E58-7273CF8065DE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MissionSystem.Database", "MissionSystem.Database\MissionSystem.Database.csproj", "{C5897B80-9324-4174-A312-8CE0EC619D93}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TheLightingController.Lib", "TheLightingController.Lib\TheLightingController.Lib.csproj", "{BE842215-5D11-45B5-884C-3F523FBE73C4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TheLightingController.Tests", "TheLightingController.Tests\TheLightingController.Tests.csproj", "{69F9A5AE-5CE4-41CB-878B-BD6485B81DAD}"
@@ -53,10 +51,6 @@ Global
 		{83A76910-82A7-4286-8E58-7273CF8065DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{83A76910-82A7-4286-8E58-7273CF8065DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{83A76910-82A7-4286-8E58-7273CF8065DE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C5897B80-9324-4174-A312-8CE0EC619D93}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C5897B80-9324-4174-A312-8CE0EC619D93}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C5897B80-9324-4174-A312-8CE0EC619D93}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C5897B80-9324-4174-A312-8CE0EC619D93}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BE842215-5D11-45B5-884C-3F523FBE73C4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BE842215-5D11-45B5-884C-3F523FBE73C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BE842215-5D11-45B5-884C-3F523FBE73C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
