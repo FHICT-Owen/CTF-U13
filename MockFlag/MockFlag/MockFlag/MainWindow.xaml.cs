@@ -202,7 +202,7 @@ public partial class MainWindow : Window
 
                 string str = JsonConvert.SerializeObject(state);
                 MqttApplicationMessage message = new MqttApplicationMessageBuilder().WithPayload(JsonConvert.SerializeObject(state))
-                .WithTopic("gadgets/01:23:45:67:89:0A/state")
+                .WithTopic("gadgets/44:17:93:87:D3:DC/state")
                 .Build();
 
                 if (newCapture) client.Client.PublishAsync(message, CancellationToken.None);

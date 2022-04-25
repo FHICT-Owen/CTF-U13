@@ -20,7 +20,7 @@ public class GadgetStateService : IGadgetStateService
         // TODO: get devices from GadgetService, subscribe to all
         // TODO: also subscribe to updates
         SubscribeToDevice(PhysicalAddress.Parse("92-22-21-82-1D-31"));
-        SubscribeToDevice(PhysicalAddress.Parse("01-23-45-67-89-0A"));
+        SubscribeToDevice(PhysicalAddress.Parse("44:17:93:87:D3:DC"));
     }
 
     public void Subscribe(string device)
