@@ -25,7 +25,7 @@
 </div>
 <div class="demo">
     <div class="score">
-        <h2>Team 1</h2>
+        <h2>Team Green</h2>
         <span>@(team1Score ?? "0")</span>
     </div>
     <div class="status">
@@ -35,7 +35,7 @@
         <ProgressBar Progress="@_capturePercentage" ForegroundColor="@_foregroundColor" BackgroundColor="@_backgroundColor"></ProgressBar>
     </div>
     <div class="score">
-        <h2>Team 2</h2>
+        <h2>Team Red</h2>
         <span>@(team2Score ?? "0")</span>
     </div>
 </div>
@@ -50,7 +50,7 @@
             <button class="btn btn-outline-danger" @onclick="@StopMatch">Stop</button>
         }
     }
-    <button class="btn btn-outline-warning">Reset</button>
+    <button class="btn btn-outline-warning" @onclick="@ResetMatch">Reset</button>
 </div>
 
 @code {
@@ -86,16 +86,20 @@
         team2Score = obj["Team2Score"].ToString();
         string percentage = obj["FlagState"]["CapturePercentage"].ToString();
         string capturer = obj["FlagState"]["Capturer"].ToString();
-        if (capturer == "1") _foregroundColor = "#FF0000";
-        if (capturer == "2") _foregroundColor = "#0f9ff2";
+        if (capturer == "1") _foregroundColor = "#00FF00";
+        if (capturer == "2") _foregroundColor = "#FF0000";
+        if (capturer == "0") _foregroundColor = "#342E37";
 
         _capturePercentage = long.Parse(percentage);
         if (_capturePercentage == 100)
         {
             _capturedBy = capturer;
-            if (capturer == "1") _backgroundColor = "#FF0000";
-            if (capturer == "2") _backgroundColor = "#0f9ff2";
+            if (capturer == "1") _backgroundColor = "#00FF00";
+            if (capturer == "2") _backgroundColor = "#FF0000";
         }
+
+        InvokeAsync(StateHasChanged);
+
     }
 
     private void StartMatch()
@@ -107,11 +111,19 @@
 
     private void OnTick(object? sender, EventArgs e)
     {
+        if (!_started) _started = true;
+
         InvokeAsync(StateHasChanged);
     }
 
     private void StopMatch()
     {
+        _started = false;
+        _timer.PauseTimer();
+    }
+
+    private void ResetMatch() {
+        _timer.StopTimer();
         _started = false;
     }
 
