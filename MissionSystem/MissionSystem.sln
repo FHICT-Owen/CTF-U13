@@ -21,6 +21,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TheLightingController.Tests
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TheLightingController.Example", "TheLightingController.Example\TheLightingController.Example.csproj", "{98C347C5-1929-4423-BC5C-5F5FEF1D308E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MissionSystem.Data", "MissionSystem.Data\MissionSystem.Data.csproj", "{AB93DA0D-E3E0-4630-BA28-E88C3FF3B3A0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MissionSystem.Util", "MissionSystem.Util\MissionSystem.Util.csproj", "{AD60D066-A0C1-426B-B9B5-A3C556E69079}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -63,6 +67,14 @@ Global
 		{98C347C5-1929-4423-BC5C-5F5FEF1D308E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{98C347C5-1929-4423-BC5C-5F5FEF1D308E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{98C347C5-1929-4423-BC5C-5F5FEF1D308E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AB93DA0D-E3E0-4630-BA28-E88C3FF3B3A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AB93DA0D-E3E0-4630-BA28-E88C3FF3B3A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AB93DA0D-E3E0-4630-BA28-E88C3FF3B3A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AB93DA0D-E3E0-4630-BA28-E88C3FF3B3A0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AD60D066-A0C1-426B-B9B5-A3C556E69079}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD60D066-A0C1-426B-B9B5-A3C556E69079}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD60D066-A0C1-426B-B9B5-A3C556E69079}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD60D066-A0C1-426B-B9B5-A3C556E69079}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
