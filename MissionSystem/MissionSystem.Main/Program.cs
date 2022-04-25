@@ -28,6 +28,9 @@ builder.Services.AddHostedService<IMQTTBroker>((provider) => MQTTBrokerFactory.G
 
 builder.Services.AddSingleton<IMqttClientService, MqttClientService>();
 builder.Services.AddHostedService(provider => provider.GetRequiredService<IMqttClientService>());
+
+builder.Services.AddSingleton<IGadgetService, GadgetService>();
+
 builder.Services.AddSingleton<IGadgetStateService, GadgetStateService>();
 
 builder.Services.AddSingleton<IGameService, GameService>();

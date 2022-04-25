@@ -3,20 +3,20 @@ using MissionSystem.Main.Gadgets;
 
 namespace MissionSystem.Util;
 
-public abstract class SubscribableResource<T, TId> : ISubscribable<T, TId>
+public abstract class SubscribableResource<T> : ISubscribable<T>
 {
-    private readonly HashSet<ISubscribable<T, TId>.ResourceAddedCallback> _addedCallbacks = new();
-    private readonly HashSet<ISubscribable<T, TId>.ResourceRemovedCallback> _removedCallbacks = new();
+    protected readonly HashSet<ISubscribable<T>.ResourceAddedCallback> AddedCallbacks = new();
+    protected readonly HashSet<ISubscribable<T>.ResourceRemovedCallback> RemovedCallbacks = new();
 
-    public IUnsubscribable SubscribeToResource(ISubscribable<T, TId>.ResourceAddedCallback added,
-        ISubscribable<T, TId>.ResourceRemovedCallback removed)
+    public IUnsubscribable SubscribeToResource(ISubscribable<T>.ResourceAddedCallback added,
+        ISubscribable<T>.ResourceRemovedCallback removed)
     {
-        _addedCallbacks.Add(added);
-        _removedCallbacks.Add(removed);
+        AddedCallbacks.Add(added);
+        RemovedCallbacks.Add(removed);
 
         return new ResourceUnsubscribable(
-            new Unsubscribable<ISubscribable<T, TId>.ResourceAddedCallback>(_addedCallbacks, added),
-            new Unsubscribable<ISubscribable<T, TId>.ResourceRemovedCallback>(_removedCallbacks, removed));
+            new Unsubscribable<ISubscribable<T>.ResourceAddedCallback>(AddedCallbacks, added),
+            new Unsubscribable<ISubscribable<T>.ResourceRemovedCallback>(RemovedCallbacks, removed));
     }
 
     private readonly struct ResourceUnsubscribable : IUnsubscribable

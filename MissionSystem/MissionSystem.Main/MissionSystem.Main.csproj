@@ -19,8 +19,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\MissionSystem.Data\MissionSystem.Data.csproj" />
     <ProjectReference Include="..\MissionSystem.Factory\MissionSystem.Factory.csproj" />
     <ProjectReference Include="..\MissionSystem.MqttBroker\MissionSystem.MqttBroker.csproj" />
+    <ProjectReference Include="..\MissionSystem.Util\MissionSystem.Util.csproj" />
   </ItemGroup>
 
 </Project>
