@@ -1,4 +1,3 @@
-using System.Net.NetworkInformation;
 using MissionSystem.Data.Models;
 using MissionSystem.Util;
 
@@ -7,7 +6,7 @@ namespace MissionSystem.Main.Gadgets;
 /// <summary>
 /// Service which can be used to manage gadgets
 /// </summary>
-public interface IGadgetService : ISubscribable<Gadget>
+public interface IGadgetService : ISubscribableResource<Gadget>
 {
     /// <summary>
     /// Gets a list of all gadgets currently known to the system

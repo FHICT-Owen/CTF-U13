@@ -1,6 +1,6 @@
 using MissionSystem.Interface;
 
-namespace MissionSystem.Main.Gadgets;
+namespace MissionSystem.Util;
 
 public class Unsubscribable<T> : IUnsubscribable
 {

@@ -41,8 +41,8 @@ public class GadgetStateService : IGadgetStateService
 
         _ = SubscribeToAllGadgets();
 
-        // Get updates for future new gadgets / removals of gadgets
-        _gadgetService.SubscribeToResource(OnGadgetAdded, OnGadgetRemoved);
+        _gadgetService.Added += OnGadgetAdded;
+        _gadgetService.Deleted += OnGadgetRemoved;
     }
 
     public IUnsubscribable StateUpdatesOf(PhysicalAddress device, IGadgetStateService.StateCallback callback)
@@ -114,6 +114,9 @@ public class GadgetStateService : IGadgetStateService
 
     public void Dispose()
     {
+        _gadgetService.Added -= OnGadgetAdded;
+        _gadgetService.Deleted -= OnGadgetRemoved;
+
         foreach (var (_, sub) in _gadgetSubscriptions)
         {
             sub.Dispose();

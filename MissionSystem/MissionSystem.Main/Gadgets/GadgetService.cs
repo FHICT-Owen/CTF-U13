@@ -1,4 +1,3 @@
-using System.Net.NetworkInformation;
 using Microsoft.EntityFrameworkCore;
 using MissionSystem.Data;
 using MissionSystem.Data.Models;
@@ -11,7 +10,7 @@ namespace MissionSystem.Main.Gadgets;
 /// Because gadgets can be added/removed while the system is running, it can
 /// also notify other services when this is done so they can update. themselves
 /// </summary>
-public class GadgetService : SubscribableResource<Gadget>, IGadgetService
+public class GadgetService : SubscribableResourceResource<Gadget>, IGadgetService
 {
     public async Task<List<Gadget>> GetGadgets()
     {
@@ -25,10 +24,7 @@ public class GadgetService : SubscribableResource<Gadget>, IGadgetService
         await db.Gadgets.AddAsync(gadget);
         await db.SaveChangesAsync();
 
-        foreach (var cb in AddedCallbacks)
-        {
-            cb(gadget);
-        }
+        OnAdded(gadget);
     }
 
     public async Task DeleteGadget(Gadget gadget)
@@ -37,9 +33,6 @@ public class GadgetService : SubscribableResource<Gadget>, IGadgetService
         db.Gadgets.Remove(gadget);
         await db.SaveChangesAsync();
 
-        foreach (var cb in RemovedCallbacks)
-        {
-            cb(gadget);
-        }
+        OnDeleted(gadget);
     }
 }
