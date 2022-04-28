@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using MissionSystem.Interface;
+using MissionSystem.Interface.Services;
 using MissionSystem.Interface.Timer;
 
 namespace MissionSystem.Logic;
@@ -28,15 +29,19 @@ public abstract class BaseGame : IBaseGame
         timer = gameTimerService.CreateTimer(duration);
     }
 
-    public ITimer GetNewTimer()
+    public ITimer GetTimer()
     {
-        int totalduration = timer.TotalDuration;
-        timer = gameTimerService.CreateTimer(totalduration);
         return timer;
     }
 
-    public ITimer GetTimer()
+    public ITimer ResetTimer()
     {
+        int totalduration = timer.TotalDuration;
+
+        timer.Dispose();
+
+        timer = gameTimerService.CreateTimer(totalduration);
+
         return timer;
     }
 }

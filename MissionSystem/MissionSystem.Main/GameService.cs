@@ -1,5 +1,6 @@
 ﻿using MissionSystem.Factory;
 using MissionSystem.Interface;
+using MissionSystem.Interface.Services;
 
 namespace MissionSystem.Main;
 public class GameService : IGameService

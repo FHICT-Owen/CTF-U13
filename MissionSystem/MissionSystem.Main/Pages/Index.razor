@@ -1,9 +1,12 @@
 @page "/"
 @using MissionSystem.Main.Gadgets
 @using MissionSystem.Interface
-@using Newtonsoft.Json
-@using System.Net.NetworkInformation
+@using MissionSystem.Interface.Services
 @using MissionSystem.Interface.Timer
+
+@using Newtonsoft.Json
+@using Newtonsoft.Json.Linq
+@using System.Net.NetworkInformation
 
 @implements IDisposable
 @inject IGadgetStateService _gadgets
@@ -81,7 +84,10 @@
     }
 
     private void Update(object? sender, string data) {
-        Newtonsoft.Json.Linq.JObject obj = (Newtonsoft.Json.Linq.JObject)JsonConvert.DeserializeObject(data);
+        if (string.IsNullOrEmpty(data)) return;
+
+        JObject obj = JObject.Parse(data);
+        
         team1Score = obj["Team1Score"].ToString();
         team2Score = obj["Team2Score"].ToString();
         string percentage = obj["FlagState"]["CapturePercentage"].ToString();
@@ -119,12 +125,12 @@
     private void StopMatch()
     {
         _started = false;
-        _timer.PauseTimer();
+        _timer.StopTimer();
     }
 
     private void ResetMatch() {
-        _timer.StopTimer();
         _started = false;
+        _timer.ResetTimer();
     }
 
     //private void OnFlagUpdate(Dictionary<string, object> state)

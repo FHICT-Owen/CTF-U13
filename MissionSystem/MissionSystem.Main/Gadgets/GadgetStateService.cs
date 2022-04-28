@@ -1,5 +1,6 @@
 using System.Net.NetworkInformation;
-using MissionSystem.Interface;
+using MissionSystem.Interface.MQTT;
+using MissionSystem.Interface.Services;
 using MissionSystem.Main.MQTT;
 
 namespace MissionSystem.Main.Gadgets;
@@ -47,7 +48,7 @@ public class GadgetStateService : IGadgetStateService
 
     private void SubscribeToDevice(PhysicalAddress address)
     {
-        _mqtt.SubscribeAsync($"gadgets/{formatMac(address)}/state", message => HandleMessage(address, message));
+        _mqtt.SubscribeAsync($"gadgets/+/state", message => HandleMessage(address, message));
     }
 
     private void HandleMessage(PhysicalAddress address, Dictionary<string, object> msg)

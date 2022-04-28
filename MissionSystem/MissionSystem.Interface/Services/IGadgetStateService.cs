@@ -1,6 +1,7 @@
 using System.Net.NetworkInformation;
+using MissionSystem.Interface.MQTT;
 
-namespace MissionSystem.Interface;
+namespace MissionSystem.Interface.Services;
 
 public interface IGadgetStateService
 {
