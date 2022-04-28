@@ -8,9 +8,7 @@ public class Timer : EventArgs, ITimer
 
     public event EventHandler? Start;
     public event EventHandler? Stop;
-    public event EventHandler? Pause;
-    public event EventHandler? Continue;
-
+    public event EventHandler? Reset;
 
     private int _Time = 0;
     public int Time { get { return _Time; } }
@@ -61,30 +59,25 @@ public class Timer : EventArgs, ITimer
 
     public void StopTimer()
     {
+        if (!IsRunning) return;
         if (StartTime != null)
         {
             _EndTime = DateTime.Now;
-            _Time = TotalDuration;
         }
 
         _IsRunning = false;
         Stop?.Invoke(this, this);
     }
-
-    public void PauseTimer()
+    public void ResetTimer()
     {
-        if (!IsRunning) return;
-
         _IsRunning = false;
-        Pause?.Invoke(this, this);
-    }
 
-    public void ContinueTimer()
-    {
-        if (IsRunning) return;
+        _Time = 0;
 
-        _IsRunning = true;
-        Continue?.Invoke(this, this);
+        _StartTime = null;
+        _EndTime = null;
+
+        Reset?.Invoke(this, this);
     }
 
     public override string ToString()
@@ -107,5 +100,10 @@ public class Timer : EventArgs, ITimer
             
             return str;
         }
+    }
+
+    public void Dispose()
+    {
+        throw new NotImplementedException();
     }
 }

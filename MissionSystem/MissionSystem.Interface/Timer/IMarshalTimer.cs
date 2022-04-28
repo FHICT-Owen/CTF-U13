@@ -2,5 +2,4 @@
 public interface IMarshalTimer : IGameTimer
 {
     public void StartTimer();
-    public void ContinueTimer();
 }

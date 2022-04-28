@@ -2,5 +2,5 @@
 public interface IGameTimer : IBaseTimer
 {
     public void StopTimer();
-    public void PauseTimer();
+    public void ResetTimer();
 }

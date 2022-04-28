@@ -1,4 +1,4 @@
-﻿namespace MissionSystem.Interface;
+﻿namespace MissionSystem.Interface.MQTT;
 public interface IUnsubscribable : IDisposable
 {
 }

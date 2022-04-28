@@ -123,11 +123,11 @@ public partial class MainWindow : Window
     {
         if (_currentCode == CODERED)
         {
-            Label.Content = "Correct code for team Red!\nStart Capturing!";
+            Label.Content = "Correct code for team Green!\nStart Capturing!";
 
             SetBackGround();
 
-            ProgressBar.Foreground = new SolidColorBrush(Color.FromRgb(255, 0, 0));
+            ProgressBar.Foreground = new SolidColorBrush(Color.FromRgb(0, 255, 0));
             currentTeam = 1;
 
             if (currentTeam != capturedTeam) capturedAmount = 1;
@@ -140,11 +140,11 @@ public partial class MainWindow : Window
         else if (_currentCode == CODEBLUE)
         {
 
-            Label.Content = "Correct code for team Blue!\nStart Capturing!";
+            Label.Content = "Correct code for team Red!\nStart Capturing!";
 
             SetBackGround();
 
-            ProgressBar.Foreground = new SolidColorBrush(Color.FromRgb(15, 159, 242));
+            ProgressBar.Foreground = new SolidColorBrush(Color.FromRgb(255, 0, 0));
             currentTeam = 2;
             if (currentTeam != capturedTeam) capturedAmount = 1;
             _currentCode = "";
@@ -167,10 +167,10 @@ public partial class MainWindow : Window
                 ProgressBar.Background = new SolidColorBrush(Color.FromRgb(230, 230, 230));
                 break;
             case 1:
-                ProgressBar.Background = new SolidColorBrush(Color.FromRgb(255, 0, 0));
+                ProgressBar.Background = new SolidColorBrush(Color.FromRgb(0, 255, 0));
                 break;
             case 2:
-                ProgressBar.Background = new SolidColorBrush(Color.FromRgb(15, 159, 242));
+                ProgressBar.Background = new SolidColorBrush(Color.FromRgb(255, 0, 0));
                 break;
         }
     }
@@ -181,7 +181,19 @@ public partial class MainWindow : Window
 
         buttonTimer.Dispose();
 
-        if (capturedAmount < 100) capturedAmount = 1;
+        if (capturedAmount < 100)
+        {
+            capturedAmount = 1;
+
+            State state = new State { capturePercentage = capturedAmount, capturer = currentTeam };
+
+            string str = JsonConvert.SerializeObject(state);
+            MqttApplicationMessage message = new MqttApplicationMessageBuilder().WithPayload(JsonConvert.SerializeObject(state))
+            .WithTopic("gadgets/44:17:93:87:D3:DC/state")
+            .Build();
+
+            client.Client.PublishAsync(message, CancellationToken.None);
+        }
         ProgressBar.Value = capturedAmount;
 
     }
@@ -202,7 +214,7 @@ public partial class MainWindow : Window
 
                 string str = JsonConvert.SerializeObject(state);
                 MqttApplicationMessage message = new MqttApplicationMessageBuilder().WithPayload(JsonConvert.SerializeObject(state))
-                .WithTopic("gadgets/01:23:45:67:89:0A/state")
+                .WithTopic("gadgets/44:17:93:87:D3:DC/state")
                 .Build();
 
                 if (newCapture) client.Client.PublishAsync(message, CancellationToken.None);

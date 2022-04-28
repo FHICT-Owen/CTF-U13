@@ -1,4 +1,4 @@
-﻿using MissionSystem.Interface;
+﻿using MissionSystem.Interface.MQTT;
 using Newtonsoft.Json;
 using System.Net.NetworkInformation;
 
@@ -17,17 +17,32 @@ public class CTFLogic : BaseGame
 
     public async override Task Setup()
     {
-        CreateTimer(600);
+        CreateTimer(1200);
         timer.Update += Update;
 
-        update = gadgetStateService.StateUpdatesOf(PhysicalAddress.Parse("01-23-45-67-89-0A"), (callback) => {
+        update = gadgetStateService.StateUpdatesOf(PhysicalAddress.Parse("44:17:93:87:D3:DC"), (callback) => {
             current = FlagState.FromRaw(callback);
-            Console.WriteLine(current.CapturePercentage);
+            Console.WriteLine($"{current.CapturePercentage}, {current.Capturer}");
+
+            if (current.CapturePercentage == 0 && current.Capturer == 0)
+            {
+                capturedBy = 0;
+            }
 
             if (current.CapturePercentage >= 100)
             {
                 capturedBy = (int)current.Capturer;
             }
+
+            Data d = new Data()
+            {
+                Team1Score = team1Score,
+                Team2Score = team2Score,
+                CapturedBy = capturedBy,
+                FlagState = current
+            };
+
+            data?.Invoke(this, JsonConvert.SerializeObject(d));
         });
 
         // score multiplier?
@@ -54,19 +69,8 @@ public class CTFLogic : BaseGame
 
     private async void Update(object? sender, EventArgs args)
     {
-        if (capturedBy == 0) return;
-
         if (capturedBy == 1) team1Score += 1;
         if (capturedBy == 2) team2Score += 1;
-
-        Data d = new Data() {
-            Team1Score = team1Score,
-            Team2Score = team2Score,
-            CapturedBy = capturedBy,
-            FlagState = current
-        };
-
-        data?.Invoke(this, JsonConvert.SerializeObject(d));
 
         if (timer.TimeRemaining == 60) ; // run 1 minute left event
 
@@ -77,7 +81,15 @@ public class CTFLogic : BaseGame
         // score service, add points based on subtopic
         // more specific score logic?
 
+        Data d = new Data()
+        {
+            Team1Score = team1Score,
+            Team2Score = team2Score,
+            CapturedBy = capturedBy,
+            FlagState = current
+        };
 
+        data?.Invoke(this, JsonConvert.SerializeObject(d));
     }
 
     public struct Data
