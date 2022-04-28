@@ -1,0 +1,39 @@
+@page "/gadgets/create"
+
+@using MissionSystem.Data.Models
+@using MissionSystem.Main.Gadgets
+@inject IGadgetService _GadgetService
+<h3>Create</h3>
+
+<EditForm Model="@gadget" OnValidSubmit="@HandleValidSubmit">
+    <DataAnnotationsValidator/>
+    <ValidationSummary/>
+
+    <p>
+        <label>
+            MAC:
+            <PhysicalAddressInput @bind-Value="gadget.MacAddress"/>
+        </label>
+    </p>
+
+    <p>
+        <label>
+            Name:
+            <InputText @bind-Value="gadget.Name"/>
+        </label>
+    </p>
+
+    <button type="submit">Submit</button>
+</EditForm>
+
+@code {
+    private Gadget gadget = new();
+
+    async void HandleValidSubmit()
+    {
+        await _GadgetService.AddGadgetAsync(gadget);
+    }
+    
+    
+
+}

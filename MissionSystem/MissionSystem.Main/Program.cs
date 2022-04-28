@@ -1,16 +1,16 @@
-using MissionSystem.Main.Time;
-using MissionSystem.Main.MQTT;
-
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
-
+using System.ComponentModel;
+using System.Net.NetworkInformation;
 using MissionSystem.Factory;
-using MissionSystem.Main.Gadgets;
+using MissionSystem.Interface;
 using MissionSystem.Main;
-using MissionSystem.Interface.Services;
-using MissionSystem.Interface.MQTT;
+using MissionSystem.Main.Gadgets;
+using MissionSystem.Main.MQTT;
+using MissionSystem.Main.Time;
+using MissionSystem.Util;
 
 var builder = WebApplication.CreateBuilder(args);
+
+TypeDescriptor.AddAttributes(typeof(PhysicalAddress), new TypeConverterAttribute(typeof(PhysicalAddressTypeConverter)));
 
 // For overriding appsettings
 builder.Configuration.AddJsonFile("appsettings.User.json", true);

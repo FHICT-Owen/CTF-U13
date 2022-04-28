@@ -1,0 +1,27 @@
+@using MissionSystem.Util
+@using System.Net.NetworkInformation
+@inherits InputBase<System.Net.NetworkInformation.PhysicalAddress>
+
+<input @bind="CurrentValue" class="@CssClass" />
+
+@code {
+
+    protected override bool TryParseValueFromString(string? value, out PhysicalAddress result, out string? validationErrorMessage)
+    {
+        if (PhysicalAddress.TryParse(value, out result))
+        {
+            validationErrorMessage = null;
+
+            return true;
+        }
+
+        validationErrorMessage = "Invalid MAC-address";
+
+        return false;
+    }
+
+    protected override string? FormatValueAsString(PhysicalAddress? value)
+    {
+        return value?.ToFormattedString();
+    }
+}

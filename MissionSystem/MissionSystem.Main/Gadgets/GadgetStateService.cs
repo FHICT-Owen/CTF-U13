@@ -75,7 +75,7 @@ public class GadgetStateService : IGadgetStateService
     private async Task SubscribeToAllGadgets()
     {
         // Subscribe to all gadgets currently known to gadget service
-        foreach (var gadget in await _gadgetService.GetGadgets())
+        foreach (var gadget in await _gadgetService.GetGadgetsAsync())
         {
             // Subscribe to all gadgets
             await SubscribeToDevice(gadget.MacAddress);

@@ -1,3 +1,4 @@
+using System.Net.NetworkInformation;
 using Microsoft.EntityFrameworkCore;
 using MissionSystem.Data;
 using MissionSystem.Data.Models;
@@ -12,13 +13,36 @@ namespace MissionSystem.Main.Gadgets;
 /// </summary>
 public class GadgetService : SubscribableResourceResource<Gadget>, IGadgetService
 {
-    public async Task<List<Gadget>> GetGadgets()
+    public async Task<List<Gadget>> GetGadgetsAsync()
     {
         await using var db = new DataStore();
         return await db.Gadgets.ToListAsync();
     }
+    
+    public async Task<Gadget?> FindGadgetAsync(PhysicalAddress id)
+    {
+        await using var db = new DataStore();
+        var gadget = await db.Gadgets.FindAsync(id);
 
-    public async Task AddGadget(Gadget gadget)
+        return gadget;
+    }
+
+    public async Task UpdateGadgetAsync(PhysicalAddress id, IGadgetService.UpdateGadgetCallback callback)
+    {
+        await using var db = new DataStore();
+        var gadget = await db.Gadgets.FindAsync(id);
+
+        // TODO: exception?
+        if (gadget == null)
+        {
+            return;
+        }
+        
+        await callback(gadget);
+        await db.SaveChangesAsync();
+    }
+
+    public async Task AddGadgetAsync(Gadget gadget)
     {
         await using var db = new DataStore();
         await db.Gadgets.AddAsync(gadget);
@@ -27,7 +51,7 @@ public class GadgetService : SubscribableResourceResource<Gadget>, IGadgetServic
         OnAdded(gadget);
     }
 
-    public async Task DeleteGadget(Gadget gadget)
+    public async Task DeleteGadgetAsync(Gadget gadget)
     {
         await using var db = new DataStore();
         db.Gadgets.Remove(gadget);
