@@ -6,6 +6,9 @@
 #include <TFT_eSPI.h>
 #include <TFT_eFEX.h>
 #include <ezButton.h>
+#include <WiFi.h>
+#include <ArduinoJson.h>
+#include "EspMQTTClient.h"
 
 #define LED_PIN 27
 #define NUM_LEDS 6
@@ -14,6 +17,7 @@
 #define RFID_MOSI 13
 #define RFID_SCK 15
 
+TaskHandle_t blinkTask;
 CRGB leds[NUM_LEDS];
 MFRC522 mfrc522 = MFRC522(RFID_SS, 39);
 TFT_eSPI tft = TFT_eSPI(135, 240);
@@ -32,33 +36,63 @@ byte rowPins[ROWS] = {22, 26, 25, 32};
 byte colPins[COLS] = {17, 21, 33};
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 
+// Internal parameters > No MQTT manipulation
+String macAddress = WiFi.macAddress();
+String uniqueName = "CTF-" + macAddress;
 String text;
 String lastUID;
-String teamROG;
-String teamSFA;
+String capturedUID;
+String enteredCode;
+CRGB blinkColor;
+void blinkTaskCode(void *pvParameters);
+char c;
+int counter = 0;
+long lastMillis = 0;
+int progressCounter = 0;
+int tftCenterHeight = tft.width() / 2;
+int tftCenterWidth = tft.height() / 2;
 
+// External parameters > Can be modified using MQTT input
 int teamROGColor = TFT_GREEN;
 int teamSFAColor = TFT_RED;
-
-int progressCounter = 0;
 bool captured = false;
-String capturedUID;
+String teamROGCode;
+String teamSFACode;
 int passwordLength;
-String enteredCode;
-String keyCode = "156840";
-char c;
 bool isCodeGame = true;
+bool isEnglish = false;
+
+EspMQTTClient client(
+    "WEEB WIFI",
+    "OwendB01",
+    "192.168.6.26",
+    uniqueName.c_str());
 
 void reset(bool resetFully)
 {
+    vTaskSuspend(blinkTask);
     tft.fillScreen(TFT_BLACK);
     if (isCodeGame)
     {
-        tft.drawString("Enter code", tft.width() / 2 - 65, tft.height() / 2 - 5);
+        if (isEnglish)
+        {
+            tft.drawString("Enter code", tftCenterWidth, tftCenterHeight);
+        }
+        else
+        {
+            tft.drawString("Voer code in", tftCenterWidth, tftCenterHeight);
+        }
     }
     else
     {
-        tft.drawString("Approximate card", tft.width() / 2 - 95, tft.height() / 2 - 5);
+        if (isEnglish)
+        {
+            tft.drawString("Approximate card", tftCenterWidth, tftCenterHeight);
+        }
+        else
+        {
+            tft.drawString("Scan kaart", tftCenterWidth, tftCenterHeight);
+        }
     }
     FastLED.showColor(CRGB::White);
     if (resetFully)
@@ -72,51 +106,122 @@ void setup()
 {
     Serial.begin(115200); // Initiate a serial communication
     SPI.begin(RFID_SCK, RFID_MISO, RFID_MOSI, RFID_SS);
-    FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
+    mfrc522.PCD_Init(RFID_SS, -1);
+    button.setDebounceTime(10);
+    changeGame.setDebounceTime(10);
 
+    xTaskCreatePinnedToCore(
+        blinkTaskCode,
+        "BlinkTask",
+        50000,
+        NULL,
+        1,
+        &blinkTask,
+        0);
+    delay(100);
+    vTaskSuspend(blinkTask);
+
+    FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
     FastLED.setBrightness(25.5);
     FastLED.showColor(CRGB::White);
-    mfrc522.PCD_Init(RFID_SS, -1);
-    button.setDebounceTime(50);
-    changeGame.setDebounceTime(50);
 
     tft.init();
     tft.setRotation(1);
     tft.fillScreen(TFT_BLACK);
     tft.setTextSize(2);
+    tft.setTextDatum(MC_DATUM);
     tft.setCursor(0, 0);
     tft.setTextColor(TFT_WHITE);
-
     if (isCodeGame)
     {
-        passwordLength = 1;
-        Serial.println("Enter code on the keypad...");
-        tft.drawString("Enter code", tft.width() / 2 - 65, tft.height() / 2 - 5);
+        if (isEnglish)
+        {
+            Serial.println("Enter code on the keypad...");
+            tft.drawString("Enter code", tftCenterWidth, tftCenterHeight);
+        }
+        else
+        {
+            Serial.println("Voer code in op het keypad...");
+            tft.drawString("Voer code in", tftCenterWidth, tftCenterHeight);
+        }
     }
     else
     {
-        Serial.println("Approximate your card to the reader...");
-        tft.drawString("Approximate card", tft.width() / 2 - 95, tft.height() / 2 - 5);
+        if (isEnglish)
+        {
+            Serial.println("Approximate your card to the reader...");
+            tft.drawString("Approximate card", tftCenterWidth, tftCenterHeight);
+        }
+        else
+        {
+            Serial.println("Scan de kaart door hem bij de reader te houden...");
+            tft.drawString("Scan kaart", tftCenterWidth, tftCenterHeight);
+        }
     }
+    Serial.println("MAC: " + WiFi.macAddress());
     Serial.println();
+}
+
+void onConnectionEstablished()
+{
+    client.subscribe("gagdgets/" + macAddress + "/settings", [](const String &payload)
+    {
+        DynamicJsonDocument doc(1024);
+        deserializeJson(doc, payload);
+        teamROGColor=doc["teamROGColor"];
+        teamSFAColor=doc["teamSFAColor"];
+        captured=doc["captured"];
+        teamROGCode=doc["teamROGCode"].as<String>();
+        teamSFACode=doc["teamSFACode"].as<String>();
+        passwordLength=doc["passwordLength"];
+        isCodeGame=doc["isCodeGame"];
+        isEnglish=doc["isEnglish"]; 
+    });
+}
+
+void sendCaptureState(int capturePercentage, int capturer)
+{
+    DynamicJsonDocument doc(128);
+    doc["capturePercentage"] = capturePercentage;
+    doc["capturer"] = capturer;
+    char JSONMessageBuffer[128];
+    serializeJson(doc, JSONMessageBuffer);
+    client.publish("gadgets/" + macAddress + "/state", JSONMessageBuffer);
+}
+
+void blinkTaskCode(void *pvParameters)
+{
+    Serial.print("Blink running on core ");
+    Serial.println(xPortGetCoreID());
+    for (;;)
+    {
+        FastLED.showColor(blinkColor);
+        vTaskDelay(500);
+        FastLED.showColor(CRGB::Black);
+        vTaskDelay(500);
+    }
 }
 
 void loop()
 {
+    client.loop();
+    long currentMillis = millis();
     if (isCodeGame)
     {
-        teamROG = "1";
-        teamSFA = "2";
+        teamROGCode = "1465";
+        teamSFACode = "5612";
+        passwordLength = 4;
     }
     else
     {
-        teamROG = "3A FD 90 15";
-        teamSFA = "2A 01 FF B2";
+        teamROGCode = "3A FD 90 15";
+        teamSFACode = "2A 01 FF B2";
     }
 
     button.loop();
     changeGame.loop();
-    if (changeGame.isPressed()) {
+    if (changeGame.isPressed())
+    {
         isCodeGame = !isCodeGame;
         reset(true);
     }
@@ -127,126 +232,231 @@ void loop()
 
     if (button.getState() == HIGH)
     {
-        if (captured == false)
+        if (captured == false && currentMillis - lastMillis > 25)
         {
-            if (lastUID == teamROG)
+            if (lastUID == teamROGCode)
             {
+                if (progressCounter % 5 == 0)
+                {
+                    sendCaptureState(progressCounter, 1);
+                    Serial.println(progressCounter);
+                }
                 fex.drawProgressBar(10, 105, 220, 30, progressCounter, TFT_WHITE, teamROGColor);
                 progressCounter++;
+                if (progressCounter == 100)
+                {
+                    sendCaptureState(progressCounter, 1);
+                    Serial.println(progressCounter);
+                    tft.fillScreen(TFT_BLACK);
+                    if (isEnglish)
+                    {
+                        tft.drawString("Successfully", tftCenterWidth, tftCenterHeight - 10);
+                        tft.drawString("Captured", tftCenterWidth, tftCenterHeight + 5);
+                    }
+                    else
+                    {
+                        tft.drawString("Succesvol", tftCenterWidth, tftCenterHeight - 10);
+                        tft.drawString("Gecaptured", tftCenterWidth, tftCenterHeight + 5);
+                    }
+                    capturedUID = lastUID;
+                    captured = true;
+                    vTaskSuspend(blinkTask);
+                    FastLED.showColor(CRGB::Green);
+                    delay(500);
+                }
             }
-            if (lastUID == teamSFA)
+            if (lastUID == teamSFACode)
             {
+                if (progressCounter % 5 == 0)
+                {
+                    sendCaptureState(progressCounter, 2);
+                    Serial.println(progressCounter);
+                }
                 fex.drawProgressBar(10, 105, 220, 30, progressCounter, TFT_WHITE, teamSFAColor);
                 progressCounter++;
+                if (progressCounter == 100)
+                {
+                    sendCaptureState(progressCounter, 2);
+                    Serial.println(progressCounter);
+                    tft.fillScreen(TFT_BLACK);
+                    if (isEnglish)
+                    {
+                        tft.drawString("Successfully", tftCenterWidth, tftCenterHeight - 10);
+                        tft.drawString("Captured", tftCenterWidth, tftCenterHeight + 5);
+                    }
+                    else
+                    {
+                        tft.drawString("Succesvol", tftCenterWidth, tftCenterHeight - 10);
+                        tft.drawString("Gecaptured", tftCenterWidth, tftCenterHeight + 5);
+                    }
+                    capturedUID = lastUID;
+                    captured = true;
+                    vTaskSuspend(blinkTask);
+                    FastLED.showColor(CRGB::Red);
+                    delay(500);
+                }
             }
-            delay(50);
-        }
-        if (progressCounter == 100)
-        {
-            tft.fillScreen(TFT_BLACK);
-            tft.drawString("Successfully", tft.width() / 2 - 75, tft.height() / 2 - 10);
-            tft.drawString("Captured", tft.width() / 2 - 50, tft.height() / 2 + 5);
-            capturedUID = lastUID;
-            captured = true;
-            FastLED.showColor(CRGB::White);
-            delay(500);
         }
     }
     else
     {
         progressCounter = 0;
+        if (progressCounter != 0 && progressCounter != 100)
+        {
+            sendCaptureState(0, 0);
+        }
         if (captured == true)
         {
-            if (lastUID == teamROG)
+            if (lastUID == teamROGCode)
                 fex.drawProgressBar(10, 105, 220, 30, 100, TFT_WHITE, teamROGColor);
-            if (lastUID == teamSFA)
+            if (lastUID == teamSFACode)
                 fex.drawProgressBar(10, 105, 220, 30, 100, TFT_WHITE, teamSFAColor);
         }
-    }
 
-    if (isCodeGame)
-    {
-        char key = keypad.getKey();
-        if (key)
+        if (isCodeGame)
         {
-            Serial.print(key);
-            enteredCode.concat(key);
-            if (enteredCode.length() == passwordLength)
+            char key = keypad.getKey();
+            if (key)
             {
-                if (enteredCode == teamROG)
+                Serial.print(key);
+                enteredCode.concat(key);
+                tft.fillRect(tftCenterWidth - 50, tftCenterHeight + 20, 100, 20, TFT_BLACK);
+                tft.drawString(enteredCode, tftCenterWidth, tftCenterHeight + 30);
+                if (enteredCode.length() == passwordLength)
                 {
-                    captured = false;
-                    Serial.println("\nEntered ROG code!");
-                    tft.fillScreen(TFT_BLACK);
-                    tft.drawString("Entered ROG code!", tft.width() / 2 - 95, tft.height() / 2 - 10);
-                    tft.drawString("Start capturing!", tft.width() / 2 - 93, tft.height() / 2 + 5);
-                    FastLED.showColor(CRGB::Green);
-                    lastUID = "1";
+                    delay(1000);
+                    if (enteredCode == teamROGCode)
+                    {
+                        captured = false;
+                        sendCaptureState(0, 0);
+                        Serial.println("\nEntered ROG code!");
+                        tft.fillScreen(TFT_BLACK);
+                        if (isEnglish)
+                        {
+                            tft.drawString("Entered ROG code!", tftCenterWidth, tftCenterHeight - 10);
+                            tft.drawString("Start capturing!", tftCenterWidth, tftCenterHeight + 5);
+                        }
+                        else
+                        {
+                            tft.drawString("ROG code ingevoerd!", tftCenterWidth, tftCenterHeight - 10);
+                            tft.drawString("Begin met capturen!", tftCenterWidth, tftCenterHeight + 5);
+                        }
+                        blinkColor = CRGB::Green;
+                        vTaskResume(blinkTask);
+                        lastUID = teamROGCode;
+                    }
+                    else if (enteredCode == teamSFACode)
+                    {
+                        captured = false;
+                        sendCaptureState(0, 0);
+                        Serial.println("\nEntered SFA code!");
+                        tft.fillScreen(TFT_BLACK);
+                        if (isEnglish)
+                        {
+                            tft.drawString("Entered SFA code!", tftCenterWidth, tftCenterHeight - 10);
+                            tft.drawString("Start capturing!", tftCenterWidth, tftCenterHeight + 5);
+                        }
+                        else
+                        {
+                            tft.drawString("SFA code ingevoerd!", tftCenterWidth, tftCenterHeight - 10);
+                            tft.drawString("Begin met capturen!", tftCenterWidth, tftCenterHeight + 5);
+                        }
+                        blinkColor = CRGB::Red;
+                        vTaskResume(blinkTask);
+                        lastUID = teamSFACode;
+                    }
+                    else
+                    {
+                        Serial.println("\nAccess denied!");
+                        tft.fillScreen(TFT_BLACK);
+                        if (isEnglish)
+                        {
+                            tft.drawString("Wrong code!", tftCenterWidth, tftCenterHeight);
+                        }
+                        else
+                        {
+                            tft.drawString("Verkeerde code!", tftCenterWidth, tftCenterHeight);
+                        }
+                        vTaskSuspend(blinkTask);
+                        FastLED.showColor(CRGB::Yellow);
+                        delay(2000);
+                        reset(false);
+                    }
+                    enteredCode = "";
                 }
-                else if (enteredCode == teamSFA)
-                {
-                    captured = false;
-                    Serial.println("\nEntered SFA code!");
-                    tft.fillScreen(TFT_BLACK);
-                    tft.drawString("Entered SFA code!", tft.width() / 2 - 95, tft.height() / 2 - 10);
-                    tft.drawString("Start capturing!", tft.width() / 2 - 93, tft.height() / 2 + 5);
-                    FastLED.showColor(CRGB::Red);
-                    lastUID = "2";
-                }
-                else
-                {
-                    Serial.println("\nAccess denied!");
-                    tft.fillScreen(TFT_BLACK);
-                    tft.drawString("Wrong code!", tft.width() / 2 - 65, tft.height() / 2 - 5);
-                    delay(2000);
-                    reset(false);
-                }
-                enteredCode = "";
             }
         }
-    }
-    else
-    {
-        if (mfrc522.PICC_ReadCardSerial())
+        else
         {
-            String content = "";
-            for (byte i = 0; i < mfrc522.uid.size; i++)
+            if (mfrc522.PICC_ReadCardSerial())
             {
-                content.concat(String(mfrc522.uid.uidByte[i] < 0x10 ? " 0" : " "));
-                content.concat(String(mfrc522.uid.uidByte[i], HEX));
-            }
-            content.toUpperCase();
-            String finalUID = content.substring(1);
-            if (finalUID != lastUID)
-            {
-                Serial.println("finalUID: " + finalUID);
-                lastUID = finalUID;
-                if (lastUID == teamROG)
+                String content = "";
+                for (byte i = 0; i < mfrc522.uid.size; i++)
                 {
-                    captured = false;
-                    Serial.println("Found ROG tag, you can now start capturing.\n");
-                    tft.fillScreen(TFT_BLACK);
-                    tft.drawString("Found ROG card!", tft.width() / 2 - 95, tft.height() / 2 - 10);
-                    tft.drawString("Start capturing!", tft.width() / 2 - 98, tft.height() / 2 + 5);
-                    FastLED.showColor(CRGB::Green);
+                    content.concat(String(mfrc522.uid.uidByte[i] < 0x10 ? " 0" : " "));
+                    content.concat(String(mfrc522.uid.uidByte[i], HEX));
                 }
-                else if (lastUID == teamSFA)
+                content.toUpperCase();
+                String finalUID = content.substring(1);
+                if (finalUID != lastUID)
                 {
-                    captured = false;
-                    Serial.println("Found SFA tag, you can now start capturing.\n");
-                    tft.fillScreen(TFT_BLACK);
-                    tft.drawString("Found SFA card!", tft.width() / 2 - 95, tft.height() / 2 - 10);
-                    tft.drawString("Start capturing!", tft.width() / 2 - 98, tft.height() / 2 + 5);
-                    FastLED.showColor(CRGB::Red);
-                }
-                else
-                {
-                    Serial.println("Access denied, wrong tag was used!");
-                    tft.fillScreen(TFT_BLACK);
-                    tft.drawString("Wrong card!", tft.width() / 2 - 70, tft.height() / 2 - 5);
-                    FastLED.showColor(CRGB::Yellow);
-                    delay(2000);
-                    reset(true);
+                    Serial.println("finalUID: " + finalUID);
+                    lastUID = finalUID;
+                    if (lastUID == teamROGCode)
+                    {
+                        captured = false;
+                        sendCaptureState(0, 0);
+                        Serial.println("Found ROG tag, you can now start capturing.\n");
+                        tft.fillScreen(TFT_BLACK);
+                        if (isEnglish)
+                        {
+                            tft.drawString("Found ROG card!", tftCenterWidth, tftCenterHeight - 10);
+                            tft.drawString("Start capturing!", tftCenterWidth, tftCenterHeight + 5);
+                        }
+                        else
+                        {
+                            tft.drawString("ROG kaart gevonden!", tftCenterWidth, tftCenterHeight - 10);
+                            tft.drawString("Begin met capturen!", tftCenterWidth, tftCenterHeight + 5);
+                        }
+                        blinkColor = CRGB::Green;
+                        vTaskResume(blinkTask);
+                    }
+                    else if (lastUID == teamSFACode)
+                    {
+                        captured = false;
+                        sendCaptureState(0, 0);
+                        Serial.println("Found SFA tag, you can now start capturing.\n");
+                        tft.fillScreen(TFT_BLACK);
+                        if (isEnglish)
+                        {
+                            tft.drawString("Found SFA card!", tftCenterWidth, tftCenterHeight - 10);
+                            tft.drawString("Start capturing!", tftCenterWidth, tftCenterHeight + 5);
+                        }
+                        else
+                        {
+                            tft.drawString("SFA kaart gevonden!", tftCenterWidth, tftCenterHeight - 10);
+                            tft.drawString("Begin met capturen!", tftCenterWidth, tftCenterHeight + 5);
+                        }
+                        blinkColor = CRGB::Red;
+                        vTaskResume(blinkTask);
+                    }
+                    else
+                    {
+                        Serial.println("Access denied, wrong tag was used!");
+                        tft.fillScreen(TFT_BLACK);
+                        if (isEnglish)
+                        {
+                            tft.drawString("Wrong card!", tftCenterWidth, tftCenterHeight);
+                        }
+                        else
+                        {
+                            tft.drawString("Verkeerde card!", tftCenterWidth, tftCenterHeight);
+                        }
+                        vTaskSuspend(blinkTask);
+                        FastLED.showColor(CRGB::Yellow);
+                        delay(2000);
+                        reset(true);
+                    }
                 }
             }
         }
