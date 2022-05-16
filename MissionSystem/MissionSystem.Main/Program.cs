@@ -18,6 +18,9 @@ builder.Configuration.AddJsonFile("appsettings.User.json", true);
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddHostedService<StartupService>();
+
+builder.Services.AddMudServices();
+
 builder.Services.AddSingleton<ITicker, Ticker>();
 builder.Services.AddHostedService(provider => provider.GetRequiredService<ITicker>());
 
