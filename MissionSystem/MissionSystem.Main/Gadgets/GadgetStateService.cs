@@ -1,6 +1,6 @@
 using System.Net.NetworkInformation;
 using MissionSystem.Data.Models;
-using MissionSystem.Interface;
+using MissionSystem.Interface.Services;
 using MissionSystem.Main.MQTT;
 using MissionSystem.Util;
 

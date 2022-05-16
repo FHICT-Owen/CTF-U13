@@ -1,6 +1,6 @@
-﻿using System.Text;
-using MissionSystem.Interface;
+﻿using MissionSystem.Interface.MQTT;
 using MissionSystem.Main.MQTT.Client;
+using MissionSystem.Util;
 
 namespace MissionSystem.Main.MQTT;
 
@@ -18,7 +18,7 @@ public class MqttClientService : IMqttClientService, IDisposable
         _logger = logger;
 
         _client = new DurableMqttClient(host: Host, port: Port);
-        
+
         _client.Connect += ClientOnConnect;
         _client.Disconnect += ClientOnDisconnect;
     }
@@ -28,7 +28,7 @@ public class MqttClientService : IMqttClientService, IDisposable
     {
         _logger.LogInformation("Connected to mqtt://{}:{}", Host, Port);
     }
-    
+
     private void ClientOnDisconnect()
     {
         _logger.LogInformation("Disconnected from MQTT server");
@@ -36,7 +36,7 @@ public class MqttClientService : IMqttClientService, IDisposable
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-       await _client.ConnectAsync();
+        await _client.ConnectAsync();
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)

@@ -1,5 +1,5 @@
 using System.Net.NetworkInformation;
-using MissionSystem.Interface.MQTT;
+using MissionSystem.Util;
 
 namespace MissionSystem.Interface.Services;
 

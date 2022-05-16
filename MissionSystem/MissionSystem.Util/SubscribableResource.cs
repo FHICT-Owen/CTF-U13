@@ -1,6 +1,6 @@
 namespace MissionSystem.Util;
 
-public abstract class SubscribableResourceResource<T> : ISubscribableResource<T>
+public abstract class SubscribableResource<T> : ISubscribableResource<T>
 {
     public event Action<T>? Added;
     public event Action<T>? Deleted;

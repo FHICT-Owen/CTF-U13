@@ -1,8 +1,9 @@
-﻿using MissionSystem.Interface.MQTT;
+﻿using System.Net.NetworkInformation;
+using MissionSystem.Util;
 using Newtonsoft.Json;
-using System.Net.NetworkInformation;
 
 namespace MissionSystem.Logic.CTF;
+
 public class CTFLogic : BaseGame
 {
     private int capturedBy;
@@ -11,7 +12,9 @@ public class CTFLogic : BaseGame
     private int team2Score = 0;
     private IUnsubscribable update;
 
-    public CTFLogic(IServiceProvider provider) : base(provider) { }
+    public CTFLogic(IServiceProvider provider) : base(provider)
+    {
+    }
 
     public override event EventHandler<string>? data;
 
@@ -20,7 +23,8 @@ public class CTFLogic : BaseGame
         CreateTimer(1200);
         timer.Update += Update;
 
-        update = gadgetStateService.StateUpdatesOf(PhysicalAddress.Parse("44:17:93:87:D3:DC"), (callback) => {
+        update = gadgetStateService.StateUpdatesOf(PhysicalAddress.Parse("44:17:93:87:D3:DC"), (callback) =>
+        {
             current = FlagState.FromRaw(callback);
             Console.WriteLine($"{current.CapturePercentage}, {current.Capturer}");
 
@@ -31,7 +35,7 @@ public class CTFLogic : BaseGame
 
             if (current.CapturePercentage >= 100)
             {
-                capturedBy = (int)current.Capturer;
+                capturedBy = (int) current.Capturer;
             }
 
             Data d = new Data()
@@ -64,7 +68,6 @@ public class CTFLogic : BaseGame
         // score.AddAll(score)
         // score.RemoveAll(score)
         // score.GetAll()
-
     }
 
     private async void Update(object? sender, EventArgs args)

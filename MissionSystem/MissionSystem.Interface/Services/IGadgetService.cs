@@ -2,7 +2,7 @@ using System.Net.NetworkInformation;
 using MissionSystem.Data.Models;
 using MissionSystem.Util;
 
-namespace MissionSystem.Main.Gadgets;
+namespace MissionSystem.Interface.Services;
 
 /// <summary>
 /// Service which can be used to manage gadgets

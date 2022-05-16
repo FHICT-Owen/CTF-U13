@@ -2,6 +2,7 @@ using System.Net.NetworkInformation;
 using Microsoft.EntityFrameworkCore;
 using MissionSystem.Data;
 using MissionSystem.Data.Models;
+using MissionSystem.Interface.Services;
 using MissionSystem.Util;
 
 namespace MissionSystem.Main.Gadgets;
@@ -11,7 +12,7 @@ namespace MissionSystem.Main.Gadgets;
 /// Because gadgets can be added/removed while the system is running, it can
 /// also notify other services when this is done so they can update. themselves
 /// </summary>
-public class GadgetService : SubscribableResourceResource<Gadget>, IGadgetService
+public class GadgetService : SubscribableResource<Gadget>, IGadgetService
 {
     public async Task<List<Gadget>> GetGadgetsAsync()
     {
