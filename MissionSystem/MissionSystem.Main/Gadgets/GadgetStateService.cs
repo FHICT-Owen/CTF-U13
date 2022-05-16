@@ -34,10 +34,13 @@ public class GadgetStateService : IGadgetStateService
     private readonly Dictionary<PhysicalAddress, HashSet<IGadgetStateService.StateCallback>> _callbacks =
         new();
 
-    public GadgetStateService(IMqttClientService mqtt, IGadgetService gadgetService)
+    private readonly ILogger<GadgetStateService> _logger;
+
+    public GadgetStateService(IMqttClientService mqtt, IGadgetService gadgetService, ILogger<GadgetStateService> logger)
     {
         _mqtt = mqtt;
         _gadgetService = gadgetService;
+        _logger = logger;
 
         _ = SubscribeToAllGadgets();
 
@@ -90,14 +93,19 @@ public class GadgetStateService : IGadgetStateService
         );
 
         _gadgetSubscriptions.Add(address, unsub);
+        
+        _logger.LogInformation("Subscribed to device {}", address.ToFormattedString());
     }
 
     private void UnsubscribeDevice(PhysicalAddress address)
     {
         if (!_gadgetSubscriptions.ContainsKey(address)) return;
 
-        _gadgetSubscriptions[address].Dispose();
+        var sub = _gadgetSubscriptions[address];
+        sub.Dispose();
         _gadgetSubscriptions.Remove(address);
+        
+        _logger.LogInformation("Unsubscribed from device {}", address.ToFormattedString());
     }
 
     private void HandleMessage(PhysicalAddress address, Dictionary<string, object> msg)

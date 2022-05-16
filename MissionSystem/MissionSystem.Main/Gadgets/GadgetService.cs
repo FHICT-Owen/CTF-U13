@@ -19,7 +19,7 @@ public class GadgetService : SubscribableResource<Gadget>, IGadgetService
         await using var db = new DataStore();
         return await db.Gadgets.ToListAsync();
     }
-    
+
     public async Task<Gadget?> FindGadgetAsync(PhysicalAddress id)
     {
         await using var db = new DataStore();
@@ -38,7 +38,7 @@ public class GadgetService : SubscribableResource<Gadget>, IGadgetService
         {
             return;
         }
-        
+
         await callback(gadget);
         await db.SaveChangesAsync();
     }
@@ -46,8 +46,11 @@ public class GadgetService : SubscribableResource<Gadget>, IGadgetService
     public async Task AddGadgetAsync(Gadget gadget)
     {
         await using var db = new DataStore();
-        await db.Gadgets.AddAsync(gadget);
+        var entry = await db.Gadgets.AddAsync(gadget);
         await db.SaveChangesAsync();
+
+        // Load type of this gadget
+        await entry.Reference(g => g.Type).LoadAsync();
 
         OnAdded(gadget);
     }

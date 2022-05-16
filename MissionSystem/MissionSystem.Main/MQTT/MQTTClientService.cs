@@ -1,5 +1,4 @@
-﻿using MissionSystem.Interface.MQTT;
-using MissionSystem.Main.MQTT.Client;
+﻿using MissionSystem.Main.MQTT.Client;
 using MissionSystem.Util;
 
 namespace MissionSystem.Main.MQTT;
@@ -51,10 +50,6 @@ public class MqttClientService : IMqttClientService, IDisposable
 
     public async Task<IUnsubscribable> SubscribeAsync(string topic, IDurableMqttClient.MessageCallback callback)
     {
-        _logger.LogInformation("Subscribed to MQTT topic {}", topic);
-        await _client.SubscribeTopic(topic, callback);
-
-        // TODO: unsubscribe
-        return null;
+        return await _client.SubscribeTopic(topic, callback);
     }
 }
