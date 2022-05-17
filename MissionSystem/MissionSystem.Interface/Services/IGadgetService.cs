@@ -34,13 +34,10 @@ public interface IGadgetService : ISubscribableResource<Gadget>
     /// <returns></returns>
     public Task<Gadget?> FindGadgetAsync(PhysicalAddress id);
 
-    delegate Task UpdateGadgetCallback(Gadget gadget);
-
     /// <summary>
     /// Update a gadget in the system
     /// </summary>
-    /// <param name="id">The ID of the gadget to update</param>
-    /// <param name="callback">The callback in which to update the gadget</param>
+    /// <param name="gadget">Gadget to update</param>
     /// <returns></returns>
-    public Task UpdateGadgetAsync(PhysicalAddress id, UpdateGadgetCallback callback);
+    public Task UpdateGadgetAsync(Gadget gadget);
 }

@@ -23,7 +23,7 @@ public class CTFLogic : BaseGame
         CreateTimer(1200);
         timer.Update += Update;
 
-        update = gadgetStateService.StateUpdatesOf(PhysicalAddress.Parse("44:17:93:87:D3:DC"), (callback) =>
+        update = gadgetStateService.StateUpdatesOf(PhysicalAddress.Parse("44:17:93:87:D3:DC"), (timestamp, callback) =>
         {
             current = FlagState.FromRaw(callback);
             Console.WriteLine($"{current.CapturePercentage}, {current.Capturer}");

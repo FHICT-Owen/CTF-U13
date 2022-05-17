@@ -28,18 +28,10 @@ public class GadgetService : SubscribableResource<Gadget>, IGadgetService
         return gadget;
     }
 
-    public async Task UpdateGadgetAsync(PhysicalAddress id, IGadgetService.UpdateGadgetCallback callback)
+    public async Task UpdateGadgetAsync(Gadget gadget)
     {
         await using var db = new DataStore();
-        var gadget = await db.Gadgets.FindAsync(id);
-
-        // TODO: exception?
-        if (gadget == null)
-        {
-            return;
-        }
-
-        await callback(gadget);
+        db.Update(gadget);
         await db.SaveChangesAsync();
     }
 

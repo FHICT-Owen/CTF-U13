@@ -1,14 +1,21 @@
 @page "/gadgets"
 @using MissionSystem.Util
 @using MissionSystem.Interface.Services
-@using System.Net.NetworkInformation
 @using MissionSystem.Data.Models
+@using System.Net.NetworkInformation
 @implements IDisposable
 @inject IGadgetService GadgetService
+@inject IGadgetStateService GadgetStateService
 
-<h3>Gadgets</h3>
+<h2>Gadgets</h2>
 
-<CreateForm></CreateForm>
+<div class="mb-2">
+    <h3>New</h3>
+
+    <GadgetForm Gadget="_newGadget" OnSubmit="OnGadgetCreate" IsNewGadget="true"></GadgetForm>
+</div>
+
+<h3>List</h3>
 
 <table class="table">
     <thead>
@@ -16,6 +23,7 @@
         <td>Name</td>
         <td>Type</td>
         <td>Address</td>
+        <td>Last seen</td>
         <td>Actions</td>
     </tr>
     </thead>
@@ -27,8 +35,22 @@
             <td>@gadget.Type.Name</td>
             <td>@gadget.MacAddress.ToFormattedString()</td>
             <td>
-                <a class="btn btn-warning" href="/gadgets/edit/@gadget.MacAddress">Edit</a>
-                <button class="btn btn-danger" @onclick="() => DeleteGadget(gadget)">Delete</button>
+                @if (_lastSeen.ContainsKey(gadget.MacAddress))
+                {
+                    <span>@_lastSeen[gadget.MacAddress].ToRelativeString(DateTime.Now)</span>
+                }
+                else
+                {
+                    <span>never</span>
+                }
+            </td>
+            <td>
+                <a class="btn btn-warning" href="/gadgets/edit/@gadget.MacAddress">
+                    <i class="bi bi-pencil"></i>
+                </a>
+                <button class="btn btn-danger" @onclick="() => DeleteGadget(gadget)">
+                    <i class="bi bi-trash"></i>
+                </button>
             </td>
         </tr>
     }
@@ -36,21 +58,49 @@
 </table>
 
 @code {
+    private Gadget _newGadget = new();
+
     private readonly Dictionary<PhysicalAddress, Gadget> _gadgets = new();
+
+    private readonly Dictionary<PhysicalAddress, DateTime> _lastSeen = new();
+
+    private readonly Dictionary<PhysicalAddress, IUnsubscribable> _subscriptions = new();
 
     protected override async Task OnInitializedAsync()
     {
         foreach (var gadget in await GadgetService.GetGadgetsAsync())
         {
             _gadgets[gadget.MacAddress] = gadget;
+            _subscriptions[gadget.MacAddress] = GadgetStateService.StateUpdatesOf(gadget.MacAddress, (timestamp, _) => OnGadgetStateUpdate(gadget.MacAddress, timestamp));
         }
 
         GadgetService.Added += OnGadgetAdded;
         GadgetService.Deleted += OnGadgetDeleted;
     }
 
+    private void OnGadgetAdded(Gadget gadget)
+    {
+        _subscriptions[gadget.MacAddress] = GadgetStateService.StateUpdatesOf(gadget.MacAddress, (timestamp, _) => OnGadgetStateUpdate(gadget.MacAddress, timestamp));
+        InvokeAsync(() =>
+        {
+            _gadgets[gadget.MacAddress] = gadget;
+            StateHasChanged();
+        });
+    }
+
+    private void OnGadgetStateUpdate(PhysicalAddress address, DateTime timestamp)
+    {
+        InvokeAsync(() =>
+        {
+            _lastSeen[address] = timestamp;
+            StateHasChanged();
+        });
+    }
+
     private void OnGadgetDeleted(Gadget gadget)
     {
+        _subscriptions[gadget.MacAddress].Dispose();
+        _subscriptions.Remove(gadget.MacAddress);
         InvokeAsync(() =>
         {
             _gadgets.Remove(gadget.MacAddress);
@@ -58,17 +108,12 @@
         });
     }
 
-    private void OnGadgetAdded(Gadget gadget)
-    {
-        InvokeAsync(() =>
-        {
-            _gadgets[gadget.MacAddress] = gadget;
-            StateHasChanged();
-        });
-    }
-
     public void Dispose()
     {
+        foreach (var (_, unsub) in _subscriptions)
+        {
+            unsub.Dispose();
+        }
         GadgetService.Added -= OnGadgetAdded;
         GadgetService.Deleted -= OnGadgetDeleted;
     }
@@ -76,6 +121,12 @@
     private async void DeleteGadget(Gadget gadget)
     {
         await GadgetService.DeleteGadgetAsync(gadget);
+    }
+
+    private async void OnGadgetCreate(Gadget gadget)
+    {
+        await GadgetService.AddGadgetAsync(gadget);
+        _newGadget = new Gadget();
     }
 
 }

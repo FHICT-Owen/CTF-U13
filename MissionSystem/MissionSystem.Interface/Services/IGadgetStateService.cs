@@ -11,7 +11,7 @@ public interface IGadgetStateService : IDisposable
     /// <summary>
     /// Callback with new gadget state
     /// </summary>
-    delegate void StateCallback(Dictionary<string, object> state);
+    delegate void StateCallback(DateTime timestamp, Dictionary<string, object> state);
 
     /// <summary>
     /// Subscribes to updates of a certain gadget

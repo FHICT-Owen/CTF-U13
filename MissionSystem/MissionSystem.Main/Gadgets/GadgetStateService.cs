@@ -24,6 +24,11 @@ public class GadgetStateService : IGadgetStateService
     private readonly Dictionary<PhysicalAddress, Dictionary<string, object>> _states = new();
 
     /// <summary>
+    /// Stores when the gadgets were last seen
+    /// </summary>
+    private readonly Dictionary<PhysicalAddress, DateTime> _lastSeen = new();
+
+    /// <summary>
     /// Stores MQTT subscriptions to gadgets
     /// </summary>
     private readonly Dictionary<PhysicalAddress, IUnsubscribable> _gadgetSubscriptions = new();
@@ -59,7 +64,7 @@ public class GadgetStateService : IGadgetStateService
 
         if (_states.ContainsKey(device))
         {
-            callback.Invoke(_states[device]);
+            callback.Invoke(_lastSeen[device], _states[device]);
         }
 
         return new Unsubscribable<IGadgetStateService.StateCallback>(_callbacks[device], callback);
@@ -93,7 +98,7 @@ public class GadgetStateService : IGadgetStateService
         );
 
         _gadgetSubscriptions.Add(address, unsub);
-        
+
         _logger.LogInformation("Subscribed to device {}", address.ToFormattedString());
     }
 
@@ -104,7 +109,7 @@ public class GadgetStateService : IGadgetStateService
         var sub = _gadgetSubscriptions[address];
         sub.Dispose();
         _gadgetSubscriptions.Remove(address);
-        
+
         _logger.LogInformation("Unsubscribed from device {}", address.ToFormattedString());
     }
 
@@ -114,9 +119,11 @@ public class GadgetStateService : IGadgetStateService
 
         if (!_callbacks.ContainsKey(address)) return;
 
+        _lastSeen[address] = DateTime.Now;
+
         foreach (var cb in _callbacks[address])
         {
-            cb(_states[address]);
+            cb(_lastSeen[address], _states[address]);
         }
     }
 

@@ -17,12 +17,12 @@ public class Gadget
     /// <summary>
     /// The type of gadget
     /// </summary>
+    [ForeignKey("TypeId")]
     public GadgetType Type { get; set; }
 
     /// <summary>
     /// Foreign key for <see cref="Type"/>
     /// </summary>
-    [ForeignKey("Type")]
     [Required]
     [Range(0, Double.MaxValue)] // Trick as [required] does not work
     public int TypeId { get; set; }
