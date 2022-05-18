@@ -16,7 +16,7 @@ public class DurableMqttClient : IDurableMqttClient
     private readonly string _host;
     private readonly int _port;
 
-    private readonly Dictionary<string, HashSet<IDurableMqttClient.MessageCallback>> _subscriptions = new();
+    private readonly Dictionary<TopicFilter, IDurableMqttClient.MessageCallback> _subscriptions = new();
 
     public DurableMqttClient(string id = "testID", string username = "", string password = "",
         string host = "localhost",
@@ -58,14 +58,14 @@ public class DurableMqttClient : IDurableMqttClient
                     return;
                 }
 
-                if (!_subscriptions.ContainsKey(args.ApplicationMessage.Topic)) return;
-
-                // TODO: this does not work with any type of wildcard subscription
-                var callbacks = _subscriptions[args.ApplicationMessage.Topic];
-
-                foreach (var messageCallback in callbacks)
+                foreach (var (topic, cb) in _subscriptions)
                 {
-                    messageCallback(obj);
+                    if (!topic.IsTopicMatch(args.ApplicationMessage.Topic))
+                    {
+                        continue;
+                    }
+
+                    cb(obj);
                 }
             }
             catch (JsonException)
@@ -88,16 +88,12 @@ public class DurableMqttClient : IDurableMqttClient
 
     public async Task<IUnsubscribable> SubscribeTopic(string topic, IDurableMqttClient.MessageCallback callback)
     {
-        if (!_subscriptions.ContainsKey(topic))
-        {
-            _subscriptions[topic] = new HashSet<IDurableMqttClient.MessageCallback>();
-        }
-
-        _subscriptions[topic].Add(callback);
+        TopicFilter filter = new TopicFilter(topic);
+        _subscriptions[filter] = callback;
 
         await _client.SubscribeAsync(topic);
 
-        return new MqttTopicUnsubscribable(() => _client.UnsubscribeAsync(), _subscriptions[topic], callback);
+        return new MqttTopicUnsubscribable(() => _client.UnsubscribeAsync(), _subscriptions, filter);
     }
 
     public async Task SendMessageAsync(string topic, Dictionary<string, object> message)
@@ -114,27 +110,22 @@ public class DurableMqttClient : IDurableMqttClient
     private class MqttTopicUnsubscribable : IUnsubscribable
     {
         private readonly Action _unsubscribe;
-        private readonly HashSet<IDurableMqttClient.MessageCallback> _subscriptions;
-        private readonly IDurableMqttClient.MessageCallback _callback;
+        private readonly Dictionary<TopicFilter, IDurableMqttClient.MessageCallback> _subscriptions;
+        private readonly TopicFilter _topic;
 
         public MqttTopicUnsubscribable(Action unsubscribe,
-            HashSet<IDurableMqttClient.MessageCallback> subscriptions,
-            IDurableMqttClient.MessageCallback callback)
+            Dictionary<TopicFilter, IDurableMqttClient.MessageCallback> subscriptions,
+            TopicFilter topic)
         {
             _unsubscribe = unsubscribe;
             _subscriptions = subscriptions;
-            _callback = callback;
+            _topic = topic;
         }
 
         public void Dispose()
         {
-            _subscriptions.Remove(_callback);
-
-            // Unsubscribe if now empty
-            if (_subscriptions.Count == 0)
-            {
-                _unsubscribe();
-            }
+            _subscriptions.Remove(_topic);
+            _unsubscribe();
         }
     }
 }
