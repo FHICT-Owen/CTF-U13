@@ -58,14 +58,13 @@ int teamSFAColor = TFT_RED;
 bool captured = false;
 String teamROGCode;
 String teamSFACode;
-int passwordLength;
 bool isCodeGame = true;
 bool isEnglish = false;
 
 EspMQTTClient client(
     "WEEB WIFI",
     "OwendB01",
-    "192.168.6.26",
+    "192.168.240.148",
     uniqueName.c_str());
 
 void reset(bool resetFully)
@@ -164,8 +163,9 @@ void setup()
 
 void onConnectionEstablished()
 {
-    client.subscribe("gagdgets/" + macAddress + "/settings", [](const String &payload)
+    client.subscribe("gadgets/" + macAddress + "/settings", [](const String &payload)
     {
+        Serial.println("Received Settings");
         DynamicJsonDocument doc(1024);
         deserializeJson(doc, payload);
         teamROGColor=doc["teamROGColor"];
@@ -173,7 +173,6 @@ void onConnectionEstablished()
         captured=doc["captured"];
         teamROGCode=doc["teamROGCode"].as<String>();
         teamSFACode=doc["teamSFACode"].as<String>();
-        passwordLength=doc["passwordLength"];
         isCodeGame=doc["isCodeGame"];
         isEnglish=doc["isEnglish"]; 
     });
@@ -206,17 +205,17 @@ void loop()
 {
     client.loop();
     long currentMillis = millis();
-    if (isCodeGame)
-    {
-        teamROGCode = "1465";
-        teamSFACode = "5612";
-        passwordLength = 4;
-    }
-    else
-    {
-        teamROGCode = "3A FD 90 15";
-        teamSFACode = "2A 01 FF B2";
-    }
+    // if (isCodeGame)
+    // {
+    //     teamROGCode = "1465";
+    //     teamSFACode = "7777";
+    //     passwordLength = 4;
+    // }
+    // else
+    // {
+    //     teamROGCode = "91 E5 07 1B";
+    //     teamSFACode = "91 73 4D 1B";
+    // }
 
     button.loop();
     changeGame.loop();
@@ -261,7 +260,7 @@ void loop()
                     capturedUID = lastUID;
                     captured = true;
                     vTaskSuspend(blinkTask);
-                    FastLED.showColor(CRGB::Green);
+                    FastLED.showColor(teamROGColor);
                     delay(500);
                 }
             }
@@ -292,7 +291,7 @@ void loop()
                     capturedUID = lastUID;
                     captured = true;
                     vTaskSuspend(blinkTask);
-                    FastLED.showColor(CRGB::Red);
+                    FastLED.showColor(teamSFAColor);
                     delay(500);
                 }
             }
@@ -322,7 +321,7 @@ void loop()
                 enteredCode.concat(key);
                 tft.fillRect(tftCenterWidth - 50, tftCenterHeight + 20, 100, 20, TFT_BLACK);
                 tft.drawString(enteredCode, tftCenterWidth, tftCenterHeight + 30);
-                if (enteredCode.length() == passwordLength)
+                if (enteredCode.length() >= teamROGCode.length())
                 {
                     delay(1000);
                     if (enteredCode == teamROGCode)
@@ -341,7 +340,7 @@ void loop()
                             tft.drawString("ROG code ingevoerd!", tftCenterWidth, tftCenterHeight - 10);
                             tft.drawString("Begin met capturen!", tftCenterWidth, tftCenterHeight + 5);
                         }
-                        blinkColor = CRGB::Green;
+                        blinkColor = teamROGColor;
                         vTaskResume(blinkTask);
                         lastUID = teamROGCode;
                     }
@@ -361,7 +360,7 @@ void loop()
                             tft.drawString("SFA code ingevoerd!", tftCenterWidth, tftCenterHeight - 10);
                             tft.drawString("Begin met capturen!", tftCenterWidth, tftCenterHeight + 5);
                         }
-                        blinkColor = CRGB::Red;
+                        blinkColor = teamSFAColor;
                         vTaskResume(blinkTask);
                         lastUID = teamSFACode;
                     }
@@ -450,7 +449,7 @@ void loop()
                         }
                         else
                         {
-                            tft.drawString("Verkeerde card!", tftCenterWidth, tftCenterHeight);
+                            tft.drawString("Verkeerde kaart!", tftCenterWidth, tftCenterHeight);
                         }
                         vTaskSuspend(blinkTask);
                         FastLED.showColor(CRGB::Yellow);
