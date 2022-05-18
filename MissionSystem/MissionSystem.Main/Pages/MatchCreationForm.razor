@@ -1,4 +1,3 @@
-@page "/new"
 @using MissionSystem.Interface.Services
 @using MissionSystem.Interface
 @using MissionSystem.Data.Models
@@ -70,6 +69,9 @@
 </EditForm>
 
 @code {
+
+    [Parameter]
+    public EventCallback<Match> OnMatchCreate { get; set; }
 
     private readonly Match _match = new()
     {
@@ -176,21 +178,9 @@
         });
     }
 
-    private void HandleValidSubmit()
+    private async void HandleValidSubmit()
     {
-    }
-
-    class Match
-    {
-        public string GameTypeId { get; set; }
-
-        public int Duration { get; set; }
-
-        public int ArenaId { get; set; }
-
-        public string[] GadgetIds { get; set; }
-
-        public bool IsEnglish { get; set; }
+        await OnMatchCreate.InvokeAsync();
     }
 
 }
