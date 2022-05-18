@@ -18,7 +18,7 @@ public class DurableMqttClient : IDurableMqttClient
 
     private readonly Dictionary<TopicFilter, IDurableMqttClient.MessageCallback> _subscriptions = new();
 
-    public DurableMqttClient(string id = "testID", string username = "", string password = "",
+    public DurableMqttClient(string id = "MissionSystem", string username = "", string password = "",
         string host = "localhost",
         int port = 1883)
     {
@@ -65,7 +65,7 @@ public class DurableMqttClient : IDurableMqttClient
                         continue;
                     }
 
-                    cb(obj);
+                    cb(args.ApplicationMessage.Topic, obj);
                 }
             }
             catch (JsonException)

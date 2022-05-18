@@ -4,7 +4,7 @@ namespace MissionSystem.Main.MQTT.Client
 {
     public interface IDurableMqttClient : IDisposable
     {
-        delegate void MessageCallback(Dictionary<string, object> message);
+        delegate void MessageCallback(string topic, Dictionary<string, object> message);
 
         public event Action Connect;
         public event Action Disconnect;
