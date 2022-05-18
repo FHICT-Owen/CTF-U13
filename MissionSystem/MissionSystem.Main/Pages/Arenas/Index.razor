@@ -1,0 +1,93 @@
+@page "/arenas"
+@using MissionSystem.Interface.Services
+@using MissionSystem.Data.Models
+@implements IDisposable
+@inject IArenaService ArenaService
+
+<h2>Arenas</h2>
+
+<div class="mb-2">
+    <h3>New</h3>
+
+    <ArenaForm Arena="@_newArena" OnSubmit="OnArenaCreate"></ArenaForm>
+</div>
+
+<h3>List</h3>
+
+<table class="table">
+    <thead>
+    <tr>
+        <td>Name</td>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var (_, arena) in _arenas)
+    {
+        <tr>
+            <td>@arena.Name</td>
+            <td>
+                <a class="btn btn-warning" href="/arenas/edit/@arena.Id">
+                    <i class="bi bi-pencil"></i>
+                </a>
+                <button class="btn btn-danger" @onclick="() => DeleteArena(arena)">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+@code {
+    private Arena _newArena = new();
+
+    private readonly Dictionary<int, Arena> _arenas = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        foreach (var arena in await ArenaService.GetArenasAsync())
+        {
+            _arenas[arena.Id] = arena;
+        }
+
+        ArenaService.Added += OnArenaAdded;
+        ArenaService.Deleted += OnArenaDeleted;
+    }
+
+    private void OnArenaAdded(Arena arena)
+    {
+        InvokeAsync(() =>
+        {
+            _arenas[arena.Id] = arena;
+            StateHasChanged();
+        });
+    }
+
+
+    private void OnArenaDeleted(Arena arena)
+    {
+        InvokeAsync(() =>
+        {
+            _arenas.Remove(arena.Id);
+            StateHasChanged();
+        });
+    }
+
+    public void Dispose()
+    {
+        ArenaService.Added -= OnArenaAdded;
+        ArenaService.Deleted -= OnArenaDeleted;
+    }
+
+    private async void DeleteArena(Arena arena)
+    {
+        await ArenaService.DeleteArenaAsync(arena);
+    }
+
+    private async void OnArenaCreate(Arena arena)
+    {
+        _newArena = new Arena();
+        await ArenaService.AddArenaAsync(arena);
+    }
+
+}

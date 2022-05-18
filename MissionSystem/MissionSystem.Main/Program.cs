@@ -2,6 +2,7 @@ using MissionSystem.Factory;
 using MissionSystem.Interface.MQTT;
 using MissionSystem.Interface.Services;
 using MissionSystem.Main;
+using MissionSystem.Main.Arenas;
 using MissionSystem.Main.Gadgets;
 using MissionSystem.Main.MQTT;
 using MissionSystem.Main.Time;
@@ -29,6 +30,7 @@ builder.Services.AddSingleton<IGadgetTypeService, GadgetTypeService>();
 builder.Services.AddSingleton<IGadgetService, GadgetService>();
 builder.Services.AddSingleton<IGadgetStateService, GadgetStateService>();
 builder.Services.AddSingleton<IGameService, GameService>();
+builder.Services.AddSingleton<IArenaService, ArenaService>();
 
 var app = builder.Build();
 
