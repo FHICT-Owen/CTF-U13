@@ -11,6 +11,11 @@ public class GadgetType
     public int Id { get; set; }
 
     /// <summary>
+    /// Unique string ID which can be used to refer to this gadget type via code.
+    /// </summary>
+    public string RefId { get; set; }
+
+    /// <summary>
     /// Name of the gadget type
     /// </summary>
     public string Name { get; set; }

@@ -8,7 +8,7 @@ public class CtfGameType : GameType
     {
     }
 
-    public override bool CanUseGadget(GadgetType type)
+    public override bool CanUseGadgetType(GadgetType type)
     {
         return type.RefId == "flag";
     }

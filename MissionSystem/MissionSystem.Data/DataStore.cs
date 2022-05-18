@@ -19,6 +19,7 @@ public class DataStore : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Gadget>().Navigation(g => g.Type).AutoInclude();
+        modelBuilder.Entity<GadgetType>().HasIndex(t => t.RefId).IsUnique();
     }
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)

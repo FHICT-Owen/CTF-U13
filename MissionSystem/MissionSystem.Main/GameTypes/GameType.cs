@@ -14,5 +14,5 @@ public abstract class GameType : IGameType
         DefaultDuration = defaultDuration;
     }
 
-    public abstract bool CanUseGadget(GadgetType type);
+    public abstract bool CanUseGadgetType(GadgetType type);
 }

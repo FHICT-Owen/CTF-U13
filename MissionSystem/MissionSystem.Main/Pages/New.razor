@@ -1,9 +1,11 @@
 @page "/new"
 @using MissionSystem.Interface.Services
-@using MissionSystem.Data.Models
 @using MissionSystem.Interface
+@using MissionSystem.Data.Models
+@using System.Net.NetworkInformation
 
 @inject IArenaService ArenaService
+@inject IGadgetService GadgetService
 @inject IGameTypeService GameTypeService
 
 <h3>New Match</h3>
@@ -13,11 +15,14 @@
 
     <div class="mb-3">
         <label for="missionInput" class="form-label">Mission</label>
-        <InputSelect required id="missionInput" class="form-select" @bind-Value="SelectedGameType">
+        <InputSelect required id="missionInput" class="form-select" @bind-Value="SelectedGameTypeId">
             <option disabled value="">Select&hellip;</option>
-            @foreach (var (id, type) in _gameTypes)
+            @if (_gameTypes != null)
             {
-                <option value="@id">@type.Name</option>
+                foreach (var (id, type) in _gameTypes)
+                {
+                    <option value="@id">@type.Name</option>
+                }
             }
         </InputSelect>
     </div>
@@ -43,6 +48,24 @@
         </InputSelect>
     </div>
 
+    <div class="mb-3">
+        <label for="languageInput" class="form-label">Language</label>
+        <InputSelect required id="languageInput" class="form-select" @bind-Value="_match.IsEnglish">
+            <option value="false">Dutch</option>
+            <option value="true">English</option>
+        </InputSelect>
+    </div>
+
+    <div class="mb-3">
+        <label for="gadgetSelect" class="form-label">Gadgets</label>
+        <InputSelect multiple required id="gadgetSelect" class="form-select" @bind-Value="_match.GadgetIds">
+            @foreach (var gadget in FilteredGadgets)
+            {
+                <option value="@gadget.MacAddress">@gadget.Name</option>
+            }
+        </InputSelect>
+    </div>
+
     <button class="btn btn-primary" type="submit">Submit</button>
 </EditForm>
 
@@ -53,21 +76,40 @@
         GameTypeId = "",
         ArenaId = 0,
         Duration = 0,
+        GadgetIds = new string[] {},
+        IsEnglish = false,
     };
 
-    private string SelectedGameType
+    private string SelectedGameTypeId
     {
         get => _match.GameTypeId;
         set
         {
             _match.GameTypeId = value;
-            OnSelectGameType(value);
+            OnSelectGameType();
+        }
+    }
+
+    private IEnumerable<Gadget> FilteredGadgets
+    {
+        get
+        {
+            if (_gameTypes == null || !_gameTypes.ContainsKey(SelectedGameTypeId))
+            {
+                return Enumerable.Empty<Gadget>();
+            }
+
+            var type = _gameTypes[SelectedGameTypeId];
+
+            return _gadgets.Values.Where(g => type.CanUseGadgetType(g.Type));
         }
     }
 
     private readonly Dictionary<int, Arena> _arenas = new();
 
-    private Dictionary<string, IGameType> _gameTypes;
+    private Dictionary<string, IGameType>? _gameTypes;
+
+    private readonly Dictionary<PhysicalAddress, Gadget> _gadgets = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -78,14 +120,42 @@
             _arenas[arena.Id] = arena;
         }
 
+        foreach (var gadget in await GadgetService.GetGadgetsAsync())
+        {
+            _gadgets[gadget.MacAddress] = gadget;
+        }
+
+        GadgetService.Added += OnGadgetAdded;
+        GadgetService.Deleted += OnGadgetDeleted;
+
         ArenaService.Added += OnArenaAdded;
         ArenaService.Deleted += OnArenaDeleted;
     }
 
-    private void OnSelectGameType(string newType)
+    private void OnGadgetAdded(Gadget gadget)
     {
-        if (!_gameTypes.ContainsKey(newType)) return;
-        _match.Duration = _gameTypes[newType].DefaultDuration;
+        InvokeAsync(() =>
+        {
+            _gadgets[gadget.MacAddress] = gadget;
+            StateHasChanged();
+        });
+    }
+
+    private void OnGadgetDeleted(Gadget gadget)
+    {
+        InvokeAsync(() =>
+        {
+            _gadgets.Remove(gadget.MacAddress);
+            StateHasChanged();
+        });
+    }
+
+    private void OnSelectGameType()
+    {
+        if (_gameTypes.ContainsKey(SelectedGameTypeId))
+        {
+            _match.Duration = _gameTypes[SelectedGameTypeId].DefaultDuration;
+        }
     }
 
     private void OnArenaDeleted(Arena arena)
@@ -117,6 +187,10 @@
         public int Duration { get; set; }
 
         public int ArenaId { get; set; }
+
+        public string[] GadgetIds { get; set; }
+
+        public bool IsEnglish { get; set; }
     }
 
 }
