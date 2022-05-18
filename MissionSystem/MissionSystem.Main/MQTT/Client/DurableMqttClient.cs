@@ -1,5 +1,4 @@
 ﻿using System.Text;
-using MissionSystem.Interface.MQTT;
 using MissionSystem.Util;
 using MQTTnet;
 using MQTTnet.Extensions.ManagedClient;
@@ -99,6 +98,12 @@ public class DurableMqttClient : IDurableMqttClient
         await _client.SubscribeAsync(topic);
 
         return new MqttTopicUnsubscribable(() => _client.UnsubscribeAsync(), _subscriptions[topic], callback);
+    }
+
+    public async Task SendMessageAsync(string topic, Dictionary<string, object> message)
+    {
+        var msg = JsonConvert.SerializeObject(message);
+        await _client.PublishAsync(topic, msg);
     }
 
     public void Dispose()

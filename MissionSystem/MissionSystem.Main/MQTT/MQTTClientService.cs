@@ -48,8 +48,9 @@ public class MqttClientService : IMqttClientService, IDisposable
         _client.Dispose();
     }
 
-    public async Task<IUnsubscribable> SubscribeAsync(string topic, IDurableMqttClient.MessageCallback callback)
-    {
-        return await _client.SubscribeTopic(topic, callback);
-    }
+    public async Task<IUnsubscribable> SubscribeAsync(string topic, IDurableMqttClient.MessageCallback callback) =>
+        await _client.SubscribeTopic(topic, callback);
+
+    public async Task SendMessageAsync(string topic, Dictionary<string, object> message) =>
+        await _client.SendMessageAsync(topic, message);
 }

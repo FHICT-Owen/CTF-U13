@@ -1,5 +1,4 @@
-﻿using MissionSystem.Interface.MQTT;
-using MissionSystem.Util;
+﻿using MissionSystem.Util;
 
 namespace MissionSystem.Main.MQTT.Client
 {
@@ -13,5 +12,6 @@ namespace MissionSystem.Main.MQTT.Client
         public Task ConnectAsync();
         public Task<IUnsubscribable> SubscribeTopic(string topic, MessageCallback callback);
         public Task CloseAsync();
+        Task SendMessageAsync(string topic, Dictionary<string, object> message);
     }
 }
