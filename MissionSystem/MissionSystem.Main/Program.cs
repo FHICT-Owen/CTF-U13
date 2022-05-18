@@ -23,7 +23,7 @@ builder.Services.AddHostedService(provider => provider.GetRequiredService<ITicke
 builder.Services.AddSingleton<IGameTimerService, GameTimerService>();
 
 builder.Services.AddScoped<MQTTBrokerFactory>();
-builder.Services.AddHostedService<IMQTTBroker>((provider) => MQTTBrokerFactory.GetMQTTBroker());
+builder.Services.AddHostedService<IMQTTBroker>((provider) => MQTTBrokerFactory.GetMQTTBroker(provider.GetRequiredService<ILogger<IMQTTBroker>>()));
 
 builder.Services.AddSingleton<IMqttClientService, MqttClientService>();
 builder.Services.AddHostedService(provider => provider.GetRequiredService<IMqttClientService>());

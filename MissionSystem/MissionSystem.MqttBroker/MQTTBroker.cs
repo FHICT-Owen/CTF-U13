@@ -1,4 +1,5 @@
-﻿using MissionSystem.Interface.MQTT;
+﻿using Microsoft.Extensions.Logging;
+using MissionSystem.Interface.MQTT;
 using MQTTnet;
 using MQTTnet.Server;
 
@@ -6,8 +7,13 @@ namespace MissionSystem.MqttBroker;
 
 public class MQTTBroker : IMQTTBroker
 {
-
     private IMqttServer? server = null;
+    private readonly ILogger<IMQTTBroker> _logger;
+
+    public MQTTBroker(ILogger<IMQTTBroker> logger)
+    {
+        _logger = logger;
+    }
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
@@ -19,7 +25,7 @@ public class MQTTBroker : IMQTTBroker
             .Build();
 
         server = mqttFactory.CreateMqttServer();
-        
+
         await server.StartAsync(mqttServerOptions);
     }
 
@@ -27,17 +33,16 @@ public class MQTTBroker : IMQTTBroker
     {
         if (server != null) await server.StopAsync();
     }
+
     public void Dispose()
     {
         if (server != null) server.StopAsync();
     }
 
-    private static void OnNewConnection(MqttConnectionValidatorContext context)
+    private void OnNewConnection(MqttConnectionValidatorContext context)
     {
-        Console.WriteLine("New connection: ClientId = {0}, Endpoint = {1}",
-                context.ClientId,
-                context.Endpoint);
-
+        _logger.LogInformation("New connection: ClientId = {0}, Endpoint = {1}",
+            context.ClientId,
+            context.Endpoint);
     }
-
 }

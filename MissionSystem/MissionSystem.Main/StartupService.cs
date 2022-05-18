@@ -14,9 +14,7 @@ public class StartupService : IHostedService
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        var gameTypeService = _serviceProvider.GetService<IGameTypeService>()!;
-
-        GameFactory.RegisterGameTypes(gameTypeService);
+        GameFactory.RegisterGameTypes(_serviceProvider.GetRequiredService<IGameTypeService>());
 
         return Task.CompletedTask;
     }
