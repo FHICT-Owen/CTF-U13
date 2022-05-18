@@ -4,6 +4,7 @@ using MissionSystem.Interface.Services;
 using MissionSystem.Main;
 using MissionSystem.Main.Arenas;
 using MissionSystem.Main.Gadgets;
+using MissionSystem.Main.GameTypes;
 using MissionSystem.Main.MQTT;
 using MissionSystem.Main.Time;
 
@@ -29,6 +30,7 @@ builder.Services.AddHostedService(provider => provider.GetRequiredService<IMqttC
 builder.Services.AddSingleton<IGadgetTypeService, GadgetTypeService>();
 builder.Services.AddSingleton<IGadgetService, GadgetService>();
 builder.Services.AddSingleton<IGadgetStateService, GadgetStateService>();
+builder.Services.AddSingleton<IGameTypeService, GameTypeService>();
 builder.Services.AddSingleton<IGameService, GameService>();
 builder.Services.AddSingleton<IArenaService, ArenaService>();
 
