@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace MissionSystem.Data.Models;
+namespace MissionSystem.Interface.Models;
 
 public class Arena
 {

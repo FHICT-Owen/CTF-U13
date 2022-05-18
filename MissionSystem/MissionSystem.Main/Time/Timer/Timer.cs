@@ -34,6 +34,7 @@ public class Timer : EventArgs, ITimer
 
     public void OnTick(object? sender, EventArgs e)
     {
+        if (!IsRunning) return;
         if (TimeRemaining <= 0)
         {
             StopTimer();
@@ -104,6 +105,5 @@ public class Timer : EventArgs, ITimer
 
     public void Dispose()
     {
-        throw new NotImplementedException();
     }
 }

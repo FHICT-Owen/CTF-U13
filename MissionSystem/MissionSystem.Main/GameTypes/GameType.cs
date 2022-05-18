@@ -1,4 +1,4 @@
-using MissionSystem.Data.Models;
+using MissionSystem.Interface.Models;
 using MissionSystem.Interface;
 
 namespace MissionSystem.Main.GameTypes;

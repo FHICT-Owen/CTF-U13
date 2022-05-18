@@ -28,8 +28,8 @@ public class Ticker : ITicker
         Tick?.Invoke(this, EventArgs.Empty);
     }
 
-    public Task StopAsync(CancellationToken cancellationToken)
+    public async Task StopAsync(CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        timer.Dispose();
     }
 }

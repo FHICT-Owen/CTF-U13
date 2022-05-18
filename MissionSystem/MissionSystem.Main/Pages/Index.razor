@@ -1,8 +1,11 @@
 @page "/"
+@using MissionSystem.Interface.Models
 @using MissionSystem.Main.Gadgets
 @using MissionSystem.Interface
 @using MissionSystem.Interface.Services
 @using MissionSystem.Interface.Timer
+
+@using MissionSystem.Main.Pages.Gadgets
 
 @using Newtonsoft.Json
 @using Newtonsoft.Json.Linq
@@ -13,18 +16,41 @@
 
 @inject IGameService _game
 @inject ILogger<Index> _logger
+@inject IArenaService _arena
 
 <PageTitle>CTF Demo</PageTitle>
 
-<style>
-    .flag::before {
-        width: 100px !important;
-        height: 100px !important;
-    }
-</style>
+<div class="arena-bar">
+    @{
+        foreach (Arena a in Arenas)
+        {
 
-<div class="timer">
-    <span>@(_timer?.ToString() ?? "00:00")</span>
+            <button id="a.Name" class=@(a == activeArena ? "nav active" : "nav") @onclick='() => SetArena(a)'>
+                @a.Name
+            </button>
+        }
+    }
+
+    <button id="settings" class="settings" @onclick='() => Settings()'>
+        <i class="bi bi-gear-fill"></i>
+    </button>
+</div>
+
+<div class="timer-bar">
+    @{
+    if (!_started)
+    {
+        <button class="btn btn-outline-success" @onclick="@StartMatch">Start</button>
+    }
+    else
+    {
+        <button class="btn btn-outline-danger" @onclick="@StopMatch">Stop</button>
+    }
+    }
+    <div class="timer">
+        <span>@(_timer?.ToString() ?? "00:00")</span>
+    </div>
+    <button class="btn btn-outline-warning" @onclick="@ResetMatch">Reset</button>
 </div>
 <div class="demo">
     <div class="score">
@@ -33,7 +59,11 @@
     </div>
     <div class="status">
         @*<span class="oi oi-flag flag" />*@
-        <img class="flag-icon" src="img/flag.png" alt="Icon of a flag" color="red"/>
+        <div class="flag" style="position: relative; width: 50%; height: 30vh">
+
+            <i class="bi bi-flag-fill" style="font-size: 150px; position: absolute; left: 25%; color: @_backgroundColor"></i>
+            <i class="bi bi-flag" style="font-size: 150px; position: absolute; left: 25%"></i>
+        </div>
         <span>@_capturedBy</span>
         <ProgressBar Progress="@_capturePercentage" ForegroundColor="@_foregroundColor" BackgroundColor="@_backgroundColor"></ProgressBar>
     </div>
@@ -42,24 +72,32 @@
         <span>@(team2Score ?? "0")</span>
     </div>
 </div>
-<div class="controls">
-    @{
-        if (!_started)
-        {
-            <button class="btn btn-outline-success" @onclick="@StartMatch">Start</button>
-        }
-        else
-        {
-            <button class="btn btn-outline-danger" @onclick="@StopMatch">Stop</button>
-        }
+
+@{
+    if (settings)
+    {
+        <div style="    opacity: 0.5;
+    background-color: #ccc;
+    position: absolute;
+    width: 100vw;
+    height: 100vh;
+    top: 0;
+" @onclick="() => settings = false">
+        </div>
+            <div style="width: 50vw; height: 50vh; position: absolute; left: 25%; top: 25%; opacity: 1.0; background-color: white">
+                <MatchCreationForm OnMatchCreate="@CreateMatch" />
+            </div>
     }
-    <button class="btn btn-outline-warning" @onclick="@ResetMatch">Reset</button>
-</div>
+}
 
 @code {
     private string _capturedBy = "0";
     private long _capturePercentage;
     private bool _started = false;
+
+    private bool settings = false;
+
+    private Arena activeArena;
 
     private IBaseGame ctf;
     private ITimer? _timer;
@@ -72,22 +110,45 @@
     private string _backgroundColor = "#8D99AE";
     private string _foregroundColor = "#342E37";
 
-    protected override void OnInitialized()
+    private List<Arena> Arenas = new();
+
+    protected async override Task OnInitializedAsync()
     {
         // _subscription = _gadgets.StateUpdatesOf(PhysicalAddress.Parse("44:17:93:87:D3:DC"), OnFlagUpdate);
+        Arenas = await _arena.GetArenasAsync();
+        _arena.Added += Add;
+        _arena.Deleted += Delete;
 
-        ctf = _game.GetGame("CTF");
+        activeArena = Arenas[0];
+
+        ctf = _game.GetGame("CTF", activeArena);
+        ctf.data += Update;
+
+        _timer = ctf.GetTimer();
+
+        _timer.Update += OnTick;
+    }
+
+    private void SetArena(Arena arena)
+    {
+        activeArena = arena;
+
+
+        ctf = _game.GetGame("CTF", activeArena);
         ctf.data += Update;
 
         _timer = ctf.GetTimer();
         _timer.Update += OnTick;
+
+        _started = _timer.IsRunning;
+
     }
 
     private void Update(object? sender, string data) {
         if (string.IsNullOrEmpty(data)) return;
 
         JObject obj = JObject.Parse(data);
-        
+
         team1Score = obj["Team1Score"].ToString();
         team2Score = obj["Team2Score"].ToString();
         string percentage = obj["FlagState"]["CapturePercentage"].ToString();
@@ -104,6 +165,8 @@
             if (capturer == "2") _backgroundColor = "#FF0000";
         }
 
+        _started = _timer.IsRunning;
+
         InvokeAsync(StateHasChanged);
 
     }
@@ -117,20 +180,55 @@
 
     private void OnTick(object? sender, EventArgs e)
     {
-        if (!_started) _started = true;
-
         InvokeAsync(StateHasChanged);
+    }
+
+    private void CreateMatch(Match match)
+    {
+        
+    }
+
+    private void Add(Arena a)
+    {
+        InvokeAsync(() =>
+        {
+            Arenas.Add(a);
+            StateHasChanged();
+        });
+
+        foreach (Arena arena in Arenas)
+        {
+            Console.WriteLine(arena.Name);
+        }
+    }
+
+    private void Delete(Arena a)
+    {
+        InvokeAsync(() =>
+        {
+            Arenas.RemoveAll(arena => a.Id == arena.Id);
+
+            StateHasChanged();
+        });
     }
 
     private void StopMatch()
     {
         _started = false;
+
         _timer.StopTimer();
     }
 
-    private void ResetMatch() {
+    private void ResetMatch()
+    {
         _started = false;
         _timer.ResetTimer();
+
+    }
+
+    private void Settings()
+    {
+        settings = true;
     }
 
     //private void OnFlagUpdate(Dictionary<string, object> state)
@@ -178,6 +276,8 @@
 
     public void Dispose()
     {
+        _arena.Deleted -= Delete;
+        _arena.Added -= Add;
         _subscription?.Dispose();
     }
 

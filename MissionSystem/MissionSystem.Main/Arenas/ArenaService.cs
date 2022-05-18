@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using MissionSystem.Data;
-using MissionSystem.Data.Models;
+using MissionSystem.Interface.Models;
 using MissionSystem.Interface.Services;
 using MissionSystem.Util;
 

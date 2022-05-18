@@ -1,5 +1,5 @@
 using System.Net.NetworkInformation;
-using MissionSystem.Data.Models;
+using MissionSystem.Interface.Models;
 using MissionSystem.Util;
 
 namespace MissionSystem.Interface.Services;

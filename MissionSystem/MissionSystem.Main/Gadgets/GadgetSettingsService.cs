@@ -27,8 +27,6 @@ public class GadgetSettingsService : IGadgetSettingsService
         }
 
         _settings[device][key] = value;
-
-        await UpdateSettings(device);
     }
     
     public async Task SetSettings(PhysicalAddress device, Dictionary<string, object> opts)
@@ -42,11 +40,9 @@ public class GadgetSettingsService : IGadgetSettingsService
         {
             _settings[device][key] = value;
         }
-
-        await UpdateSettings(device);
     }
 
-    private async Task UpdateSettings(PhysicalAddress device)
+    public async Task UpdateSettings(PhysicalAddress device)
     {
         if (!_settings.ContainsKey(device))
         {
