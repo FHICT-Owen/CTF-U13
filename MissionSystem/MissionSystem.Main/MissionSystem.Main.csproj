@@ -7,6 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="6.0.4">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0.3" />
     <PackageReference Include="MQTTnet" Version="3.1.2" />
     <PackageReference Include="MQTTnet.Extensions.ManagedClient" Version="3.1.2" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
@@ -19,8 +26,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\MissionSystem.Data\MissionSystem.Data.csproj" />
     <ProjectReference Include="..\MissionSystem.Factory\MissionSystem.Factory.csproj" />
     <ProjectReference Include="..\MissionSystem.MqttBroker\MissionSystem.MqttBroker.csproj" />
+    <ProjectReference Include="..\MissionSystem.Util\MissionSystem.Util.csproj" />
   </ItemGroup>
 
 </Project>

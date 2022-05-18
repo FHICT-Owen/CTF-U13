@@ -1,4 +1,7 @@
-﻿namespace MissionSystem.Main.MQTT.Client
+﻿using MissionSystem.Interface.MQTT;
+using MissionSystem.Util;
+
+namespace MissionSystem.Main.MQTT.Client
 {
     public interface IDurableMqttClient : IDisposable
     {
@@ -8,7 +11,7 @@
         public event Action Disconnect;
 
         public Task ConnectAsync();
-        public Task SubscribeTopic(string topic, MessageCallback callback);
+        public Task<IUnsubscribable> SubscribeTopic(string topic, MessageCallback callback);
         public Task CloseAsync();
     }
 }
