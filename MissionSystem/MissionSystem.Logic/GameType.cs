@@ -1,7 +1,7 @@
-using MissionSystem.Interface.Models;
 using MissionSystem.Interface;
+using MissionSystem.Interface.Models;
 
-namespace MissionSystem.Main.GameTypes;
+namespace MissionSystem.Logic;
 
 public abstract class GameType : IGameType
 {

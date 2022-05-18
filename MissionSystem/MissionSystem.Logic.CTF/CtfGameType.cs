@@ -1,6 +1,6 @@
 using MissionSystem.Interface.Models;
 
-namespace MissionSystem.Main.GameTypes;
+namespace MissionSystem.Logic.CTF;
 
 public class CtfGameType : GameType
 {

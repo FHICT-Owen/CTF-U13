@@ -16,6 +16,7 @@ builder.Configuration.AddJsonFile("appsettings.User.json", true);
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
+builder.Services.AddHostedService<StartupService>();
 builder.Services.AddSingleton<ITicker, Ticker>();
 builder.Services.AddHostedService(provider => provider.GetRequiredService<ITicker>());
 
