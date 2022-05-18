@@ -8,7 +8,7 @@ public class GameTypeService : IGameTypeService
     private readonly Dictionary<string, IGameType> _gameTypes = new()
     {
         // TODO: register dynamically
-        {"ctf", new GameType("Capture The Flags", 20)}
+        {"ctf", new CtfGameType()}
     };
 
     public Dictionary<string, IGameType> GameTypes => _gameTypes;

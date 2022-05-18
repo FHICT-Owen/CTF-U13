@@ -1,15 +1,18 @@
+using MissionSystem.Data.Models;
 using MissionSystem.Interface;
 
 namespace MissionSystem.Main.GameTypes;
 
-public class GameType : IGameType
+public abstract class GameType : IGameType
 {
     public string Name { get; }
     public int DefaultDuration { get; }
 
-    public GameType(string name, int defaultDuration)
+    protected GameType(string name, int defaultDuration)
     {
         Name = name;
         DefaultDuration = defaultDuration;
     }
+
+    public abstract bool CanUseGadget(GadgetType type);
 }

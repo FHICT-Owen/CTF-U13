@@ -99,8 +99,8 @@
 
     private void OnGadgetDeleted(Gadget gadget)
     {
-        _subscriptions[gadget.MacAddress].Dispose();
-        _subscriptions.Remove(gadget.MacAddress);
+        _subscriptions.Remove(gadget.MacAddress, out var unsub);
+        unsub?.Dispose();
         InvokeAsync(() =>
         {
             _gadgets.Remove(gadget.MacAddress);
@@ -114,6 +114,7 @@
         {
             unsub.Dispose();
         }
+
         GadgetService.Added -= OnGadgetAdded;
         GadgetService.Deleted -= OnGadgetDeleted;
     }

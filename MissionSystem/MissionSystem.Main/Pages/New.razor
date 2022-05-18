@@ -1,0 +1,122 @@
+@page "/new"
+@using MissionSystem.Interface.Services
+@using MissionSystem.Data.Models
+@using MissionSystem.Interface
+
+@inject IArenaService ArenaService
+@inject IGameTypeService GameTypeService
+
+<h3>New Match</h3>
+
+<EditForm Model="@_match" OnValidSubmit="@HandleValidSubmit">
+    <DataAnnotationsValidator/>
+
+    <div class="mb-3">
+        <label for="missionInput" class="form-label">Mission</label>
+        <InputSelect required id="missionInput" class="form-select" @bind-Value="SelectedGameType">
+            <option disabled value="">Select&hellip;</option>
+            @foreach (var (id, type) in _gameTypes)
+            {
+                <option value="@id">@type.Name</option>
+            }
+        </InputSelect>
+    </div>
+
+    <div class="mb-3">
+        <label for="durationInput" class="form-label">Match Duration</label>
+        <InputSelect required id="durationInput" class="form-select" @bind-Value="_match.Duration">
+            <option disabled value="0">Select&hellip;</option>
+            <option value="5">10 Minutes</option>
+            <option value="15">15 Minutes</option>
+            <option value="20">20 Minutes</option>
+        </InputSelect>
+    </div>
+
+    <div class="mb-3">
+        <label for="arenaInput" class="form-label">Arena</label>
+        <InputSelect required id="arenaInput" class="form-select" @bind-Value="_match.ArenaId">
+            <option disabled value="0">Select&hellip;</option>
+            @foreach (var (id, arena) in _arenas)
+            {
+                <option value="@id">@arena.Name</option>
+            }
+        </InputSelect>
+    </div>
+
+    <button class="btn btn-primary" type="submit">Submit</button>
+</EditForm>
+
+@code {
+
+    private readonly Match _match = new()
+    {
+        GameTypeId = "",
+        ArenaId = 0,
+        Duration = 0,
+    };
+
+    private string SelectedGameType
+    {
+        get => _match.GameTypeId;
+        set
+        {
+            _match.GameTypeId = value;
+            OnSelectGameType(value);
+        }
+    }
+
+    private readonly Dictionary<int, Arena> _arenas = new();
+
+    private Dictionary<string, IGameType> _gameTypes;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _gameTypes = GameTypeService.GameTypes;
+
+        foreach (var arena in await ArenaService.GetArenasAsync())
+        {
+            _arenas[arena.Id] = arena;
+        }
+
+        ArenaService.Added += OnArenaAdded;
+        ArenaService.Deleted += OnArenaDeleted;
+    }
+
+    private void OnSelectGameType(string newType)
+    {
+        if (!_gameTypes.ContainsKey(newType)) return;
+        _match.Duration = _gameTypes[newType].DefaultDuration;
+    }
+
+    private void OnArenaDeleted(Arena arena)
+    {
+        InvokeAsync(() =>
+        {
+            _arenas.Remove(arena.Id);
+            StateHasChanged();
+        });
+    }
+
+    private void OnArenaAdded(Arena arena)
+    {
+        InvokeAsync(() =>
+        {
+            _arenas[arena.Id] = arena;
+            StateHasChanged();
+        });
+    }
+
+    private void HandleValidSubmit()
+    {
+    }
+
+    class Match
+    {
+        public string GameTypeId { get; set; }
+
+        public int Duration { get; set; }
+
+        public int ArenaId { get; set; }
+    }
+
+}
