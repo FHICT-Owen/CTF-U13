@@ -174,7 +174,8 @@ void onConnectionEstablished()
         teamROGCode=doc["teamROGCode"].as<String>();
         teamSFACode=doc["teamSFACode"].as<String>();
         isCodeGame=doc["isCodeGame"];
-        isEnglish=doc["isEnglish"]; 
+        isEnglish=doc["isEnglish"];
+        reset(true);
     });
 }
 
