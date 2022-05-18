@@ -125,8 +125,8 @@
 
     private async void OnGadgetCreate(Gadget gadget)
     {
-        await GadgetService.AddGadgetAsync(gadget);
         _newGadget = new Gadget();
+        await GadgetService.AddGadgetAsync(gadget);
     }
 
 }
