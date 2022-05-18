@@ -30,6 +30,7 @@ builder.Services.AddHostedService(provider => provider.GetRequiredService<IMqttC
 builder.Services.AddSingleton<IGadgetTypeService, GadgetTypeService>();
 builder.Services.AddSingleton<IGadgetService, GadgetService>();
 builder.Services.AddSingleton<IGadgetStateService, GadgetStateService>();
+builder.Services.AddSingleton<IGadgetSettingsService, GadgetSettingsService>();
 builder.Services.AddSingleton<IGameTypeService, GameTypeService>();
 builder.Services.AddSingleton<IGameService, GameService>();
 builder.Services.AddSingleton<IArenaService, ArenaService>();
