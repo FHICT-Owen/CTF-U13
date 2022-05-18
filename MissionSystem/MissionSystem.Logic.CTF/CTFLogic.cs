@@ -14,9 +14,15 @@ public class CTFLogic : BaseGame
 
     public CTFLogic(IServiceProvider provider) : base(provider)
     {
+
     }
 
     public override event EventHandler<string>? data;
+
+    public override T Get<T>(string variable)
+    {
+        return default(T);
+    }
 
     public async override Task Setup()
     {
@@ -35,7 +41,7 @@ public class CTFLogic : BaseGame
 
             if (current.CapturePercentage >= 100)
             {
-                capturedBy = (int) current.Capturer;
+                capturedBy = (int)current.Capturer;
             }
 
             Data d = new Data()
@@ -47,6 +53,17 @@ public class CTFLogic : BaseGame
             };
 
             data?.Invoke(this, JsonConvert.SerializeObject(d));
+        });
+
+        gadgetSettingsService.SetSettings(PhysicalAddress.Parse("44:17:93:87:D3:DC"), new Dictionary<string, object>()
+        {
+            {"teamROGColor", 0xFF0000},
+            {"teamSFAColor", 0x00FF00},
+            {"captured", false},
+            {"teamROGCode", "1111"},
+            {"teamSFACode", "7777"},
+            {"isCodeGame", false},
+            {"isEnglish", false},
         });
 
         // score multiplier?

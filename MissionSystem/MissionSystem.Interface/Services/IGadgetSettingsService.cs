@@ -18,4 +18,6 @@ public interface IGadgetSettingsService
     /// <param name="device">The gadget to update</param>
     /// <param name="opts">The key/value pairs of the settings to update</param>
     public Task SetSettings(PhysicalAddress device, Dictionary<string, object> opts);
+
+    public Task UpdateSettings(PhysicalAddress device);
 }

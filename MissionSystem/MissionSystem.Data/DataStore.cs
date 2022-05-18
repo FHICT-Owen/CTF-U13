@@ -1,7 +1,7 @@
 using System.Net.NetworkInformation;
 using Microsoft.EntityFrameworkCore;
 using MissionSystem.Data.Converters;
-using MissionSystem.Data.Models;
+using MissionSystem.Interface.Models;
 
 namespace MissionSystem.Data;
 

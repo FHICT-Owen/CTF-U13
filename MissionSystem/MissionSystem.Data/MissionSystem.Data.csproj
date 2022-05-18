@@ -15,6 +15,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\MissionSystem.Interface\MissionSystem.Interface.csproj" />
       <ProjectReference Include="..\MissionSystem.Util\MissionSystem.Util.csproj" />
     </ItemGroup>
 

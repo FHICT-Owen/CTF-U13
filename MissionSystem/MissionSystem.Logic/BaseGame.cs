@@ -7,7 +7,8 @@ namespace MissionSystem.Logic;
 public abstract class BaseGame : IBaseGame
 {
     private IGameTimerService gameTimerService;
-    public IGadgetStateService gadgetStateService;
+    protected IGadgetStateService gadgetStateService;
+    protected IGadgetSettingsService gadgetSettingsService;
 
     public abstract event EventHandler<string>? data;
 
@@ -18,6 +19,8 @@ public abstract class BaseGame : IBaseGame
     {
         gameTimerService = provider.GetService<IGameTimerService>();
         gadgetStateService = provider.GetService<IGadgetStateService>();
+        gadgetSettingsService = provider.GetService<IGadgetSettingsService>();
+
     }
 
     public abstract Task Setup();
@@ -44,5 +47,12 @@ public abstract class BaseGame : IBaseGame
 
         return timer;
     }
+
+    public void Dispose()
+    {
+        timer.Dispose();
+    }
+
+    public abstract T? Get<T>(string variable);
 }
 

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Net.NetworkInformation;
 using MissionSystem.Util;
 
-namespace MissionSystem.Data.Models;
+namespace MissionSystem.Interface.Models;
 
 public class Gadget
 {

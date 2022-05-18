@@ -1,4 +1,4 @@
-using MissionSystem.Data.Models;
+using MissionSystem.Interface.Models;
 
 namespace MissionSystem.Interface;
 

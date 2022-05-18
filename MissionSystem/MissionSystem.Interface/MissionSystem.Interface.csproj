@@ -11,7 +11,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MissionSystem.Data\MissionSystem.Data.csproj" />
     <ProjectReference Include="..\MissionSystem.Util\MissionSystem.Util.csproj" />
   </ItemGroup>
 
