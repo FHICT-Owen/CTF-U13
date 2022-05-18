@@ -4,8 +4,11 @@ namespace MissionSystem.Logic.CTF;
 
 public class CtfGameType : GameType
 {
-    public CtfGameType() : base("Capture The Flags", 20)
+    public int FlagCount { get; }
+
+    public CtfGameType(string name, int flagCount) : base(name, 20)
     {
+        FlagCount = flagCount;
     }
 
     public override bool CanUseGadgetType(GadgetType type)

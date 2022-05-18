@@ -8,7 +8,8 @@ namespace MissionSystem.Factory
     {
         public static void RegisterGameTypes(IGameTypeService gameTypeService)
         {
-            gameTypeService.RegisterGameType("ctf", new CtfGameType());
+            gameTypeService.RegisterGameType("ctf", new CtfGameType("Capture The Flags", 3));
+            gameTypeService.RegisterGameType("koh", new CtfGameType("King Of The Hill", 1));
         }
 
         public static BaseGame GetBaseGame(IServiceProvider provider)
