@@ -25,6 +25,18 @@
             }
         </InputSelect>
     </div>
+    
+        @* TODO: Somehow load gametype-specific settings here instead of hard-coding *@
+        @if (_match.GameTypeId == "ctf" || _match.GameTypeId == "koh")
+        {
+            <div class="mb-3">
+                <label for="ctfGameType" class="form-label">Game Type</label>
+                <InputSelect required id="ctfGameType" class="form-select" @bind-Value="_match.IsCodeGame">
+                    <option value="false">Card Game</option>
+                    <option value="true">Code Game</option>
+                </InputSelect>
+            </div>
+        }
 
     <div class="mb-3">
         <label for="durationInput" class="form-label">Match Duration</label>

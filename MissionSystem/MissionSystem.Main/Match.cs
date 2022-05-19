@@ -11,4 +11,6 @@ public class Match
     public string[] GadgetIds { get; set; }
 
     public bool IsEnglish { get; set; }
+    
+    public bool IsCodeGame { get; set; }
 }
