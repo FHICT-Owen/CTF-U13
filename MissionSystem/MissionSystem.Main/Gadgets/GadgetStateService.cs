@@ -72,10 +72,9 @@ public class GadgetStateService : IGadgetStateService
     private void HandleMessage(PhysicalAddress address, Dictionary<string, object> msg)
     {
         _states[address] = msg;
+        _lastSeen[address] = DateTime.Now;
 
         if (!_callbacks.ContainsKey(address)) return;
-
-        _lastSeen[address] = DateTime.Now;
 
         foreach (var cb in _callbacks[address])
         {
