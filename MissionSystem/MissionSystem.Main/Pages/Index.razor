@@ -12,7 +12,8 @@
 @using System.Net.NetworkInformation
 
 @implements IDisposable
-@inject IGadgetStateService _gadgets
+@inject IGadgetStateService _gadgetState
+@inject IGadgetService _gadget
 
 @inject IGameService _game
 @inject ILogger<Index> _logger
@@ -38,14 +39,14 @@
 
 <div class="timer-bar">
     @{
-    if (!_started)
-    {
-        <button class="btn btn-outline-success" @onclick="@StartMatch">Start</button>
-    }
-    else
-    {
-        <button class="btn btn-outline-danger" @onclick="@StopMatch">Stop</button>
-    }
+        if (!_started)
+        {
+            <button class="btn btn-outline-success" @onclick="@StartMatch">Start</button>
+        }
+        else
+        {
+            <button class="btn btn-outline-danger" @onclick="@StopMatch">Stop</button>
+        }
     }
     <div class="timer">
         <span>@(_timer?.ToString() ?? "00:00")</span>
@@ -55,21 +56,30 @@
 <div class="demo">
     <div class="score">
         <h2>Team Green</h2>
-        <span>@(team1Score ?? "0")</span>
+        <span>@(team1Score | 0)</span>
     </div>
-    <div class="status">
-        @*<span class="oi oi-flag flag" />*@
-        <div class="flag" style="position: relative; width: 50%; height: 30vh">
+    @{
+        foreach (string address in Addresses)
+        {
+            @if (!FlagStates.ContainsKey(address)) FlagStates[address] = new FlagState();
 
-            <i class="bi bi-flag-fill" style="font-size: 150px; position: absolute; left: 25%; color: @_backgroundColor"></i>
-            <i class="bi bi-flag" style="font-size: 150px; position: absolute; left: 25%"></i>
-        </div>
-        <span>@_capturedBy</span>
-        <ProgressBar Progress="@_capturePercentage" ForegroundColor="@_foregroundColor" BackgroundColor="@_backgroundColor"></ProgressBar>
-    </div>
+            <div class="status" id=@address>
+                @*<span class="oi oi-flag flag" />*@
+                <div class="flag" style="position: relative; width: 50%; height: 30vh">
+
+                    <i class="bi bi-flag-fill" style="font-size: 150px; position: absolute; left: 25%; color: @FlagStates[address].BackgroundColor"></i>
+                    <i class="bi bi-flag" style="font-size: 150px; position: absolute; left: 25%"></i>
+                </div>
+                <span>@FlagStates[address].CapturedBy</span>
+                <ProgressBar Progress="@FlagStates[address].CapturePercentage" ForegroundColor="@FlagStates[address].ForegroundColor" BackgroundColor="@FlagStates[address].BackgroundColor"></ProgressBar>
+            </div>
+        }
+
+        
+    }
     <div class="score">
         <h2>Team Red</h2>
-        <span>@(team2Score ?? "0")</span>
+        <span>@(team2Score | 0)</span>
     </div>
 </div>
 
@@ -77,22 +87,22 @@
     if (settings)
     {
         <div style="    opacity: 0.5;
-    background-color: #ccc;
-    position: absolute;
-    width: 100vw;
-    height: 100vh;
-    top: 0;
+                background-color: #ccc;
+                position: absolute;
+                width: 100vw;
+                height: 100vh;
+                top: 0;
 " @onclick="() => settings = false">
         </div>
-            <div style="width: 50vw; height: 50vh; position: absolute; left: 25%; top: 25%; opacity: 1.0; background-color: white">
-                <MatchCreationForm OnMatchCreate="@CreateMatch" />
-            </div>
+        <div style="width: 50vw; height: 50vh; position: absolute; left: 25%; top: 25%; opacity: 1.0; background-color: white">
+            <MatchCreationForm OnMatchCreate="@CreateMatch" />
+        </div>
     }
 }
 
 @code {
-    private string _capturedBy = "0";
-    private long _capturePercentage;
+    private Dictionary<string, FlagState> FlagStates = new();
+
     private bool _started = false;
 
     private bool settings = false;
@@ -102,18 +112,20 @@
     private IBaseGame ctf;
     private ITimer? _timer;
 
-    private string team1Score;
-    private string team2Score;
+    private int team1Score;
+    private int team2Score;
 
     private IDisposable? _subscription;
 
-    private string _backgroundColor = "#8D99AE";
-    private string _foregroundColor = "#342E37";
+    private List<string> Addresses = new();
 
     private List<Arena> Arenas = new();
 
     protected async override Task OnInitializedAsync()
     {
+        _gadget.Added += GetAddresses;
+        _gadget.Deleted += GetAddresses;
+
         // _subscription = _gadgets.StateUpdatesOf(PhysicalAddress.Parse("44:17:93:87:D3:DC"), OnFlagUpdate);
         Arenas = await _arena.GetArenasAsync();
         _arena.Added += Add;
@@ -122,11 +134,22 @@
         activeArena = Arenas[0];
 
         ctf = _game.GetGame("CTF", activeArena);
-        ctf.data += Update;
+        ctf.updateHandler += Update;
 
         _timer = ctf.GetTimer();
 
         _timer.Update += OnTick;
+
+        GetAddresses(new Gadget());
+
+    }
+
+    private void GetAddresses(Gadget g)
+    {
+
+        string data = ctf.GetData();
+        Addresses = JsonConvert.DeserializeObject<List<string>>(data);
+        InvokeAsync(StateHasChanged);
     }
 
     private void SetArena(Arena arena)
@@ -135,7 +158,7 @@
 
 
         ctf = _game.GetGame("CTF", activeArena);
-        ctf.data += Update;
+        ctf.updateHandler += Update;
 
         _timer = ctf.GetTimer();
         _timer.Update += OnTick;
@@ -144,25 +167,56 @@
 
     }
 
-    private void Update(object? sender, string data) {
+    private struct UpdateData {
+        public int Team1Score;
+        public int Team2Score;
+        public Dictionary<string, FlagState>? FlagStates;
+    };
+
+    private struct FlagState
+    {
+        public long CapturePercentage;
+        public long Capturer;
+        public long? CapturedBy = 0;
+        public string? Address;
+        public string? BackgroundColor = "#8D99AE";
+        public string? ForegroundColor;
+    };
+
+    private void Update(object? sender, string data)
+    {
         if (string.IsNullOrEmpty(data)) return;
 
-        JObject obj = JObject.Parse(data);
+        UpdateData d = JsonConvert.DeserializeObject<UpdateData>(data);
 
-        team1Score = obj["Team1Score"].ToString();
-        team2Score = obj["Team2Score"].ToString();
-        string percentage = obj["FlagState"]["CapturePercentage"].ToString();
-        string capturer = obj["FlagState"]["Capturer"].ToString();
-        if (capturer == "1") _foregroundColor = "#00FF00";
-        if (capturer == "2") _foregroundColor = "#FF0000";
-        if (capturer == "0") _foregroundColor = "#342E37";
+        team1Score = d.Team1Score;
+        team2Score = d.Team2Score;
 
-        _capturePercentage = long.Parse(percentage);
-        if (_capturePercentage == 100)
+        foreach (KeyValuePair<string, FlagState> kvPair in d.FlagStates)
         {
-            _capturedBy = capturer;
-            if (capturer == "1") _backgroundColor = "#00FF00";
-            if (capturer == "2") _backgroundColor = "#FF0000";
+            FlagState f = kvPair.Value;
+            string address = kvPair.Value.Address;
+
+            switch (f.Capturer) {
+                case 0:
+                    f.ForegroundColor = "#342e37";
+                    break;
+                case 1:
+                    f.ForegroundColor = "#00ff00";
+                    break;
+                case 2:
+                    f.ForegroundColor = "#ff0000";
+                    break;
+
+            }
+            if (f.CapturePercentage == 100)
+            {
+                f.CapturedBy = f.Capturer;
+                if (f.Capturer == 1) f.BackgroundColor = "#00FF00";
+                if (f.Capturer == 2) f.BackgroundColor = "#FF0000";
+            }
+
+            FlagStates[kvPair.Key] = f;
         }
 
         _started = _timer.IsRunning;
@@ -185,7 +239,7 @@
 
     private void CreateMatch(Match match)
     {
-        
+
     }
 
     private void Add(Arena a)

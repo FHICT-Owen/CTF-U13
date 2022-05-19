@@ -1,4 +1,5 @@
 ﻿using System.Net.NetworkInformation;
+using MissionSystem.Interface.Models;
 using MissionSystem.Util;
 using Newtonsoft.Json;
 
@@ -6,8 +7,10 @@ namespace MissionSystem.Logic.CTF;
 
 public class CTFLogic : BaseGame
 {
+    private List<Gadget> Gadgets = new List<Gadget>();
+
     private int capturedBy;
-    private FlagState current;
+    private Dictionary<string, FlagState> FlagStates = new();
     private int team1Score = 0;
     private int team2Score = 0;
     private IUnsubscribable update;
@@ -17,7 +20,8 @@ public class CTFLogic : BaseGame
 
     }
 
-    public override event EventHandler<string>? data;
+    public override event EventHandler<string>? updateHandler;
+    public override event EventHandler<string>? init;
 
     public override T Get<T>(string variable)
     {
@@ -29,47 +33,77 @@ public class CTFLogic : BaseGame
         CreateTimer(1200);
         timer.Update += Update;
 
-        update = gadgetStateService.StateUpdatesOf(PhysicalAddress.Parse("44:17:93:87:D3:DC"), (timestamp, callback) =>
+        Gadgets = await gadgetService.GetGadgetsAsync();
+
+        foreach (Gadget gadget in Gadgets)
         {
-            current = FlagState.FromRaw(callback);
-            Console.WriteLine($"{current.CapturePercentage}, {current.Capturer}");
+            string address = gadget.MacAddress.ToString();
 
-            if (current.CapturePercentage == 0 && current.Capturer == 0)
+            update = gadgetStateService.StateUpdatesOf(PhysicalAddress.Parse(address), (timestamp, callback) =>
             {
-                capturedBy = 0;
-            }
+                FlagState f = FlagState.FromRaw(callback);
+                Console.WriteLine($"{f.CapturePercentage}, {f.Capturer}");
 
-            if (current.CapturePercentage >= 100)
+                if (f.CapturePercentage == 0 && f.Capturer == 0)
+                {
+                    f.CapturedBy = 0;
+                }
+
+                if (f.CapturePercentage >= 100)
+                {
+                    f.CapturedBy = (int)f.Capturer;
+                }
+
+                f.Address = address;
+
+                if (!FlagStates.ContainsKey(address)) FlagStates.Add(address, f);
+                else FlagStates[address] = f;
+
+                Data d = new Data()
+                {
+                    Team1Score = team1Score,
+                    Team2Score = team2Score,
+                    FlagStates = FlagStates
+                };
+
+                updateHandler?.Invoke(this, JsonConvert.SerializeObject(d));
+            });
+
+            gadgetSettingsService.SetSettings(PhysicalAddress.Parse(address), new Dictionary<string, object>()
             {
-                capturedBy = (int)current.Capturer;
-            }
+                {"teamROGColor", 0xFF0000},
+                {"teamSFAColor", 0x00FF00},
+                {"captured", false},
+                {"teamROGCode", "1111"},
+                {"teamSFACode", "7777"},
+                {"isCodeGame", false},
+                {"isEnglish", false},
+            });
 
-            Data d = new Data()
-            {
-                Team1Score = team1Score,
-                Team2Score = team2Score,
-                CapturedBy = capturedBy,
-                FlagState = current
-            };
-
-            data?.Invoke(this, JsonConvert.SerializeObject(d));
-        });
-
-        gadgetSettingsService.SetSettings(PhysicalAddress.Parse("44:17:93:87:D3:DC"), new Dictionary<string, object>()
-        {
-            {"teamROGColor", 0xFF0000},
-            {"teamSFAColor", 0x00FF00},
-            {"captured", false},
-            {"teamROGCode", "1111"},
-            {"teamSFACode", "7777"},
-            {"isCodeGame", false},
-            {"isEnglish", false},
-        });
+        }
 
         // score multiplier?
         // linking IoT devices here?
         // linking teams with codes sent by the devices?
     }
+
+    private async Task GetGadgets()
+    {
+        Gadgets = await gadgetService.GetGadgetsAsync();
+    }
+
+    public override string GetData()
+    {
+        GetGadgets();
+        List<string> addresses = new List<string>();
+
+        foreach (Gadget gadget in Gadgets)
+        {
+            addresses.Add(gadget.MacAddress.ToString());
+        }
+
+        return JsonConvert.SerializeObject(addresses);
+    } 
 
     public async override Task Start()
     {
@@ -89,8 +123,11 @@ public class CTFLogic : BaseGame
 
     private async void Update(object? sender, EventArgs args)
     {
-        if (capturedBy == 1) team1Score += 1;
-        if (capturedBy == 2) team2Score += 1;
+        foreach (FlagState state in FlagStates.Values)
+        {
+            if (state.CapturedBy == 1) team1Score++;
+            if (state.CapturedBy == 2) team2Score++;
+        }
 
         if (timer.TimeRemaining == 60) ; // run 1 minute left event
 
@@ -105,18 +142,16 @@ public class CTFLogic : BaseGame
         {
             Team1Score = team1Score,
             Team2Score = team2Score,
-            CapturedBy = capturedBy,
-            FlagState = current
+            FlagStates = FlagStates
         };
 
-        data?.Invoke(this, JsonConvert.SerializeObject(d));
+        updateHandler?.Invoke(this, JsonConvert.SerializeObject(d));
     }
 
     public struct Data
     {
         public int Team1Score;
         public int Team2Score;
-        public int CapturedBy;
-        public FlagState FlagState;
+        public Dictionary<string, FlagState> FlagStates;
     }
 }

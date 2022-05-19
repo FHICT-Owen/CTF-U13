@@ -3,8 +3,6 @@ using MissionSystem.Interface;
 using MissionSystem.Interface.Models;
 using MissionSystem.Interface.Services;
 using MissionSystem.Util;
-using System.Linq;
-using static MissionSystem.Main.GameService;
 
 namespace MissionSystem.Main;
 public class GameService : SubscribableResource<Game>, IGameService

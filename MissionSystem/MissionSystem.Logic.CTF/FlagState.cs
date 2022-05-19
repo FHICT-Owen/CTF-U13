@@ -4,6 +4,8 @@ public struct FlagState
 {
     public long CapturePercentage;
     public long Capturer;
+    public long? CapturedBy;
+    public string? Address;
     
     public static FlagState FromRaw(Dictionary<string, object> msg)
     {

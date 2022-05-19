@@ -175,6 +175,10 @@ public partial class MainWindow : Window
         }
     }
 
+    private string topic = "44:17:93:87:D3:DD";
+    // private string topic = "00:00:00:00:00:00";
+    // private string topic = "11:11:11:11:11:11";
+
     private void Button_Mouse_Up(object sender, MouseButtonEventArgs e)
     {
         if (buttonTimer == null) return;
@@ -189,7 +193,7 @@ public partial class MainWindow : Window
 
             string str = JsonConvert.SerializeObject(state);
             MqttApplicationMessage message = new MqttApplicationMessageBuilder().WithPayload(JsonConvert.SerializeObject(state))
-            .WithTopic("gadgets/44:17:93:87:D3:DC/state")
+            .WithTopic($"gadgets/{topic}/state")
             .Build();
 
             client.Client.PublishAsync(message, CancellationToken.None);
@@ -214,7 +218,7 @@ public partial class MainWindow : Window
 
                 string str = JsonConvert.SerializeObject(state);
                 MqttApplicationMessage message = new MqttApplicationMessageBuilder().WithPayload(JsonConvert.SerializeObject(state))
-                .WithTopic("gadgets/44:17:93:87:D3:DC/state")
+                .WithTopic($"gadgets/{topic}/state")
                 .Build();
 
                 if (newCapture) client.Client.PublishAsync(message, CancellationToken.None);

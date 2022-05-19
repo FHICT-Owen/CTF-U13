@@ -9,17 +9,25 @@ public abstract class BaseGame : IBaseGame
     private IGameTimerService gameTimerService;
     protected IGadgetStateService gadgetStateService;
     protected IGadgetSettingsService gadgetSettingsService;
+    protected IGadgetService gadgetService;
 
-    public abstract event EventHandler<string>? data;
+    public abstract event EventHandler<string>? updateHandler;
+    public abstract event EventHandler<string>? init;
+
 
     protected ITimer timer { get; set; }
 
+    public virtual string GetData()
+    {
+        throw new NotImplementedException();
+    }
     
     public BaseGame(IServiceProvider provider)
     {
         gameTimerService = provider.GetService<IGameTimerService>();
         gadgetStateService = provider.GetService<IGadgetStateService>();
         gadgetSettingsService = provider.GetService<IGadgetSettingsService>();
+        gadgetService = provider.GetService<IGadgetService>();
 
     }
 
