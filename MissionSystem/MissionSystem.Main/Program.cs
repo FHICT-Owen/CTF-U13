@@ -3,6 +3,7 @@ using MissionSystem.Interface.MQTT;
 using MissionSystem.Interface.Services;
 using MissionSystem.Main;
 using MissionSystem.Main.Arenas;
+using MissionSystem.Main.Effects;
 using MissionSystem.Main.Gadgets;
 using MissionSystem.Main.GameTypes;
 using MissionSystem.Main.MQTT;
@@ -23,7 +24,20 @@ builder.Services.AddHostedService(provider => provider.GetRequiredService<ITicke
 builder.Services.AddSingleton<IGameTimerService, GameTimerService>();
 
 builder.Services.AddScoped<MQTTBrokerFactory>();
-builder.Services.AddHostedService<IMQTTBroker>((provider) => MQTTBrokerFactory.GetMQTTBroker(provider.GetRequiredService<ILogger<IMQTTBroker>>()));
+builder.Services.AddHostedService<IMQTTBroker>((provider) =>
+    MQTTBrokerFactory.GetMQTTBroker(provider.GetRequiredService<ILogger<IMQTTBroker>>()));
+builder.Services.AddSingleton<IEffectsService, TlcEffectsService>(provider =>
+{
+    var config = provider.GetRequiredService<IConfiguration>();
+
+    return new TlcEffectsService(
+        config.GetValue("Dmx:Hostname", "localhost"),
+        config.GetValue("Dmx:Port", 7351),
+        config.GetValue("Dmx:Password", "test"),
+        provider.GetRequiredService<ILogger<TlcEffectsService>>()
+    );
+});
+builder.Services.AddHostedService(provider => provider.GetRequiredService<IEffectsService>());
 
 builder.Services.AddSingleton<IMqttClientService, MqttClientService>();
 builder.Services.AddHostedService(provider => provider.GetRequiredService<IMqttClientService>());

@@ -30,6 +30,7 @@
     <ProjectReference Include="..\MissionSystem.Factory\MissionSystem.Factory.csproj" />
     <ProjectReference Include="..\MissionSystem.MqttBroker\MissionSystem.MqttBroker.csproj" />
     <ProjectReference Include="..\MissionSystem.Util\MissionSystem.Util.csproj" />
+    <ProjectReference Include="..\TheLightingController.Lib\TheLightingController.Lib.csproj" />
   </ItemGroup>
 
 </Project>
