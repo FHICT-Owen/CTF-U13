@@ -1,5 +1,4 @@
 using MissionSystem.Interface.Models;
-using MissionSystem.Util;
 
 namespace MissionSystem.Interface.Services;
 
@@ -13,7 +12,7 @@ public interface IArenaService : ISubscribableResource<Arena>
     /// </summary>
     /// <returns>All arenas currently known to the system</returns>
     public Task<List<Arena>> GetArenasAsync();
-    
+
     /// <summary>
     /// Adds a new arena to the system
     /// </summary>

@@ -1,4 +1,7 @@
+using MissionSystem.Data;
+using MissionSystem.Data.Repository;
 using MissionSystem.Factory;
+using MissionSystem.Interface.Models;
 using MissionSystem.Interface.MQTT;
 using MissionSystem.Interface.Services;
 using MissionSystem.Main;
@@ -42,13 +45,23 @@ builder.Services.AddHostedService(provider => provider.GetRequiredService<IEffec
 builder.Services.AddSingleton<IMqttClientService, MqttClientService>();
 builder.Services.AddHostedService(provider => provider.GetRequiredService<IMqttClientService>());
 
-builder.Services.AddSingleton<IGadgetTypeService, GadgetTypeService>();
-builder.Services.AddSingleton<IGadgetService, GadgetService>();
+DataStore CreateDatastore(IServiceProvider sp)
+{
+    var cfg = sp.GetRequiredService<IConfiguration>();
+    return new DataStore(cfg);
+}
+
+builder.Services.AddSingleton<IGadgetTypeService, GadgetTypeService>(sp =>
+    new GadgetTypeService(() => new Repository<GadgetType, int>(CreateDatastore(sp))));
+builder.Services.AddSingleton<IGadgetService, GadgetService>(sp =>
+    new GadgetService(() => new GadgetRepository(CreateDatastore(sp))));
+builder.Services.AddSingleton<IArenaService, ArenaService>(sp =>
+    new ArenaService(sp.GetRequiredService<IGameService>(), ()=> new Repository<Arena, int>(CreateDatastore(sp))));
+
 builder.Services.AddSingleton<IGadgetStateService, GadgetStateService>();
 builder.Services.AddSingleton<IGadgetSettingsService, GadgetSettingsService>();
 builder.Services.AddSingleton<IGameTypeService, GameTypeService>();
 builder.Services.AddSingleton<IGameService, GameService>();
-builder.Services.AddSingleton<IArenaService, ArenaService>();
 
 var app = builder.Build();
 
