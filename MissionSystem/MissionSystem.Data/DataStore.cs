@@ -13,7 +13,7 @@ public class DataStore : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseNpgsql("Host=localhost; Database=postgres; Username=postgres; Password=postgres");
+        optionsBuilder.UseNpgsql("Host=localhost; Database=postgres; Username=postgres; Password=Unit1313!");
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

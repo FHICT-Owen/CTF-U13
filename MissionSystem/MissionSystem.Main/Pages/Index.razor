@@ -175,12 +175,13 @@
 
     private struct FlagState
     {
-        public long CapturePercentage;
-        public long Capturer;
+        public long CapturePercentage = 0;
+        public long Capturer = 0;
         public long? CapturedBy = 0;
-        public string? Address;
+        public string? Address = "";
         public string? BackgroundColor = "#8D99AE";
-        public string? ForegroundColor;
+        public string? ForegroundColor = "";
+        public FlagState() { }
     };
 
     private void Update(object? sender, string data)
