@@ -1,0 +1,300 @@
+@page "/front"
+
+@using MissionSystem.Interface.Services
+@using MissionSystem.Interface.Timer
+@using MissionSystem.Interface
+@using Newtonsoft.Json.Linq
+@implements IDisposable
+@inject IGadgetStateService _gadgets
+
+@inject IGameService _game
+@inject ILogger<Index> _logger
+
+<PageTitle>CTF Demo</PageTitle>
+
+<style>
+    .flag::before {
+        width: 100px !important;
+        height: 100px !important;
+    }
+</style>
+
+
+<div class = "test1">
+    <div class="test2">
+        <div> <h3>Game Length: </h3></div>
+        <div> <h3>@value</h3></div>
+    </div>
+    <div  class="test3">
+        <MudSlider @bind-Value="value" TickMarks="true" Min="5" Max="40" TickMarkLabels="@labels" Step="5" />
+    </div>
+    <div class ="test4">
+        <div> <h3>Selected Arena: @SelectedOption</h3></div>
+        <div>
+            <MudRadioGroup @bind-SelectedOption="@SelectedOption">
+                <MudRadio Option="@("Arena 1")" Color="Color.Primary">Arena 1</MudRadio>
+                <MudRadio Option="@("Arena 2")" Color="Color.Primary">Arena 2</MudRadio>
+                <MudRadio Option="@("Arena 1+2")" Color="Color.Primary">Arena 1+2</MudRadio>
+                <MudRadio Option="@("Custom")" Color="Color.Primary" Disabled="true">Custom</MudRadio>
+            </MudRadioGroup>
+        </div>
+    </div>
+        <div class="test3">   
+        <MudSelect T="string" Label="Select Gadgets" MultiSelection="true" @bind-Value="gadgetValue" @bind-SelectedValues="options">
+        @foreach (var gadget in gadgetList)
+        {
+            <MudSelectItem T="string" Value="@gadget">@gadget</MudSelectItem>
+        }
+        </MudSelect>
+        </div>
+    <div class="test2">
+        <div>
+            <div><h3>Arena 1</h3></div>
+            <div class="test1">
+                <MudCheckBox @bind-Checked="@Label_CheckBox1" Color="Color.Primary" Label="Flag A1"></MudCheckBox>
+                <MudCheckBox @bind-Checked="@Label_CheckBox2" Color="Color.Primary" Label="Flag A2"></MudCheckBox>
+                <MudCheckBox @bind-Checked="@Label_CheckBox3" Color="Color.Primary" Label="Flag A3"></MudCheckBox>
+            </div>
+        </div>
+        <div class="test5"> <MudButton Variant="Variant.Filled" Size="Size.Large">START</MudButton></div>
+        <div><h5>@gadgetValue</h5></div>
+    </div>
+</div>
+
+
+
+<div class="test2">
+    <div class="test1">
+        <h3> Flags in Play</h3>
+        <div>
+            <h3> Arena 1</h3>
+            <div class="test2">
+                <h5> Flag 1</h5>
+                <MudIcon Icon="@Icons.Filled.CheckBoxOutlineBlank" ></MudIcon>
+            </div>
+            
+        </div>
+      
+        
+    </div>
+    <div class="test1">
+        <div class="test2">
+            <h3> Time</h3>
+            <h3> 25:00</h3>
+        </div>
+        
+        <h3> Total points: </h3>
+        <div class="test2">
+              <h5> Team A</h5>
+              <h5> X</h5>
+        </div>
+        <div class="test2">
+            <h5> Team B</h5>
+            <h5> X</h5>
+        </div>
+        
+    </div>
+    
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="test2">
+    <div class="test1">
+        <h3> Flags in Play</h3>
+        <div>
+            <h3> Arena 1</h3>
+            <div class="test2">
+                <h5> Flag 1</h5>
+                <MudIcon Icon="@Icons.Filled.CheckBoxOutlineBlank" ></MudIcon>
+            </div>
+            
+        </div>
+      
+        
+    </div>
+    <div class="test1">
+        <div class="test2">
+            <h3> Time</h3>
+            <h3> 25:00</h3>
+        </div>
+        
+        <h3> Total points: </h3>
+        <div class="test2">
+              <h5> Team A</h5>
+              <h5> X</h5>
+        </div>
+        <div class="test2">
+            <h5> Team B</h5>
+            <h5> X</h5>
+        </div>
+        
+    </div>
+    
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+@code {
+    public double value = 30;
+    string[] labels = new string[] {"5", "10", "15", "20", "25", "30", "35", "40"};
+    public string SelectedOption { get; set; }
+    public bool Label_CheckBox1 { get; set; } = true;
+    public bool Label_CheckBox2 { get; set; } = false;
+    public bool Label_CheckBox3 { get; set; } = false;
+
+    //list that populates gadget list
+    public string[] gadgetList =
+    {
+        "Alabama", "Alaska", "American Samoa", "Arizona",
+        "Arkansas", "California"
+    };
+    
+    private string gadgetValue { get; set; } = "Nothing selected";
+    private IEnumerable<string> options { get; set; } = new HashSet<string>() { "Alaska" };
+    
+    private string _capturedBy = "0";
+    private long _capturePercentage;
+    private bool _started = false;
+
+    private IBaseGame ctf;
+    private ITimer? _timer;
+
+    private string team1Score;
+    private string team2Score;
+
+    private IDisposable? _subscription;
+
+    private string _backgroundColor = "#8D99AE";
+    private string _foregroundColor = "#342E37";
+
+    protected override void OnInitialized()
+    {
+        // _subscription = _gadgets.StateUpdatesOf(PhysicalAddress.Parse("44:17:93:87:D3:DC"), OnFlagUpdate);
+
+        ctf = _game.GetGame("CTF");
+        ctf.data += Update;
+
+        _timer = ctf.GetTimer();
+        _timer.Update += OnTick;
+    }
+
+    private void Update(object? sender, string data) {
+        if (string.IsNullOrEmpty(data)) return;
+
+        JObject obj = JObject.Parse(data);
+        
+        team1Score = obj["Team1Score"].ToString();
+        team2Score = obj["Team2Score"].ToString();
+        string percentage = obj["FlagState"]["CapturePercentage"].ToString();
+        string capturer = obj["FlagState"]["Capturer"].ToString();
+        if (capturer == "1") _foregroundColor = "#00FF00";
+        if (capturer == "2") _foregroundColor = "#FF0000";
+        if (capturer == "0") _foregroundColor = "#342E37";
+
+        _capturePercentage = long.Parse(percentage);
+        if (_capturePercentage == 100)
+        {
+            _capturedBy = capturer;
+            if (capturer == "1") _backgroundColor = "#00FF00";
+            if (capturer == "2") _backgroundColor = "#FF0000";
+        }
+
+        InvokeAsync(StateHasChanged);
+
+    }
+
+    private void StartMatch()
+    {
+        _started = true;
+
+        _timer.StartTimer();
+    }
+
+    private void OnTick(object? sender, EventArgs e)
+    {
+        if (!_started) _started = true;
+
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void StopMatch()
+    {
+        _started = false;
+        _timer.StopTimer();
+    }
+
+    private void ResetMatch() {
+        _started = false;
+        _timer.ResetTimer();
+    }
+
+    //private void OnFlagUpdate(Dictionary<string, object> state)
+    //{
+    //    try
+    //    {
+    //        _capturedBy = $"Team {state["CapturedBy"]}";
+    //        _capturePercentage = (long)state["CapturePercentage"];
+    //        InvokeAsync(StateHasChanged);
+    //    }
+    //    catch (Exception e)
+    //    {
+    //// TODO: should log or something
+    //        _logger.LogError("Could not parse flag state");
+    //    }
+    //}
+
+    //private void OnFlagUpdate(Dictionary<string, object> state)
+    //{
+    //    try
+    //    {
+    //        var flagState = FlagState.FromRaw(state);
+
+    //        switch (flagState.Capturer)
+    //        {
+    //            case 0:
+    //                _capturedBy = "none";
+    //                break;
+    //            case 1:
+    //                _capturedBy = "Team 1";
+    //                break;
+    //            case 2:
+    //                _capturedBy = "Team 2";
+    //                break;
+    //        }
+
+    //        InvokeAsync(StateHasChanged);
+    //    }
+    //    catch (Exception e)
+    //    {
+    //        // TODO: should log or something
+    //        _logger.LogError("Could not parse flag state");
+    //    }
+    //}
+
+    public void Dispose()
+    {
+        _subscription?.Dispose();
+    }
+
+}

@@ -151,3 +151,38 @@ a, .btn-link {
 .controls button {
     width: 10ch;
 }
+
+.test1{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+.test2{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 5rem;
+}
+
+.test3{
+   padding-left: 25%;
+    padding-right: 25%;
+    margin-top: 5rem;
+}
+
+.test4{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-left: 35%;
+    margin-top: 5rem;
+}
+
+.test5 {
+    display: flex;
+    align-items: end;
+    margin: 2rem;
+}
