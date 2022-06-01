@@ -86,24 +86,26 @@ EspMQTTClient client(
     "192.168.2.123",
     uniqueName.c_str());
 
-void pinoutInit() 
+void pinoutInit()
 {
- pinMode(14, OUTPUT);
- digitalWrite(14, HIGH);
+    pinMode(14, OUTPUT);
+    digitalWrite(14, HIGH);
 }
 
-void SPIFFSInit() 
+void SPIFFSInit()
 {
-    if (!SPIFFS.begin()) {
+    if (!SPIFFS.begin())
+    {
         Serial.println("SPIFFS initialisation failed!");
-        while (1) yield();
+        while (1)
+            yield();
     }
     Serial.println("\r\nInitialisation done.");
 }
 
-void drawingBatteryIcon(const char* filePath)
+void drawingBatteryIcon(String filePath)
 {
-    fex.drawJpgFile(SPIFFS, filePath, ICON_POS_X, 0);
+    fex.drawJpeg(filePath, ICON_POS_X, 0);
 }
 
 void drawingText(String text)
@@ -151,7 +153,6 @@ void battery_info()
 
             drawingBatteryIcon(batteryImages[imgNum]);
             drawingText(String(batteryLevel) + "%");
-            
         }
         tft.setCursor(0, 0);
         tft.setTextDatum(MC_DATUM);
@@ -163,7 +164,7 @@ void battery_info()
 void onConnectionEstablished()
 {
     client.subscribe("gadgets/" + macAddress + "/settings", [](const String &payload)
-    {
+                     {
         Serial.println("Received Settings");
         DynamicJsonDocument doc(2056);
         deserializeJson(doc, payload);
@@ -174,8 +175,7 @@ void onConnectionEstablished()
         teamSFACode=doc["teamSFACode"].as<String>();
         isCodeGame=doc["isCodeGame"];
         isEnglish=doc["isEnglish"]; 
-        disabled=doc["disabled"];
-    });
+        disabled=doc["disabled"]; });
 }
 
 void sendCaptureState(int capturePercentage, int capturer)
@@ -199,11 +199,6 @@ void blinkTaskCode(void *pvParameters)
         FastLED.showColor(CRGB::Black);
         vTaskDelay(500);
     }
-}
-
-uint16_t convertColor(byte R, byte G, byte B)
-{
-  return ( ((R & 0xF8) << 8) | ((G & 0xFC) << 3) | (B >> 3) );
 }
 
 void reset(bool resetFully)
@@ -320,27 +315,29 @@ void loop()
     client.loop();
     button.loop();
     changeGame.loop();
-    disableButton.loop();    
+    disableButton.loop();
     battery_info();
     if (disableButton.isPressed())
     {
         disabled = !disabled;
     }
-    if (disabled) {
-        if (!once) 
+    if (disabled)
+    {
+        if (!once)
         {
             tft.fillScreen(TFT_BLACK);
             tft.drawString("Disabled", tftCenterWidth, tftCenterHeight);
             vTaskSuspend(blinkTask);
-            FastLED.showColor(CRGB::Black);            
+            FastLED.showColor(CRGB::Black);
             once = true;
         }
         return;
-    } 
-    if (!disabled && once) {
+    }
+    if (!disabled && once)
+    {
         reset(true);
         once = false;
-    }   
+    }
     if (changeGame.isPressed())
     {
         isCodeGame = !isCodeGame;
@@ -356,13 +353,13 @@ void loop()
         }
         reset(true);
     }
-    
+
     long currentMillis = millis();
     if (button.getState() == HIGH)
     {
         if (captured == false && currentMillis - lastMillis > 25)
         {
-            if (teamROGCode == "" || teamSFACode == "") 
+            if (teamROGCode == "" || teamSFACode == "")
             {
                 return;
             }
@@ -373,7 +370,7 @@ void loop()
                     sendCaptureState(progressCounter, 1);
                     Serial.println(progressCounter);
                 }
-                fex.drawProgressBar(10, 105, 220, 30, progressCounter, TFT_WHITE, convertColor(teamROGColor >> 16, teamROGColor >> 8, teamROGColor));
+                fex.drawProgressBar(10, 105, 220, 30, progressCounter, TFT_WHITE, fex.color24to16(teamROGColor));
                 progressCounter++;
                 if (progressCounter == 100)
                 {
@@ -405,7 +402,7 @@ void loop()
                     sendCaptureState(progressCounter, 2);
                     Serial.println(progressCounter);
                 }
-                fex.drawProgressBar(10, 105, 220, 30, progressCounter, TFT_WHITE, convertColor(teamSFAColor >> 16, teamSFAColor >> 8, teamSFAColor));
+                fex.drawProgressBar(10, 105, 220, 30, progressCounter, TFT_WHITE, fex.color24to16(teamSFAColor));
                 progressCounter++;
                 if (progressCounter == 100)
                 {
@@ -509,12 +506,13 @@ void loop()
                 }
                 enteredCode = "";
             }
-            else if (key == '*') 
+            else if (key == '*')
             {
                 enteredCode = enteredCode.substring(0, enteredCode.length() - 1);
                 tft.fillRect(tftCenterWidth - 50, tftCenterHeight + 15, 100, 20, TFT_BLACK);
                 tft.drawString(enteredCode, tftCenterWidth, tftCenterHeight + 25);
-            } else if (key)
+            }
+            else if (key)
             {
                 Serial.print(key);
                 enteredCode.concat(key);
