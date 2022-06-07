@@ -1,10 +1,11 @@
-# Hardware Technologies
-This document summarizes the most important technologies that I had to use to get the hardware prototype to the current functional level. Each of the sections below summarizes one technology, explaining why I had to use this technology in order to achieve my goals for the hardware. I'll also explain how and where I found the information necessary to get the technology working.
+# Software features
+This document summarizes the most important features that I had to use to get the hardware prototype to the current functional level. Each of the sections below summarizes one technology, explaining why I had to use this technology in order to achieve my goals for the hardware.
 
 ## LED Strip
 After having developed the scaled down version of the capture point we still wanted to use some kind of accent light in order to indicate to the players to which team the capture point in question belongs. Victor brought along a WS2812B led strip in order to achieve this. From doing a quick search online there were 2 main libraries in use by people online and those were the FastLED library and the Adafruit NeoPixel library. 
 
 When looking at simple examples of the 2 libraries side by side it was a lot easier to achieve the initial results I wanted within the FastLED library than the Neopixel library. To simply turn either the LED strip to a certain color I'll show the difference between the 2 libraries below.
+
 ### Neopixel
 ```cpp
 #include <Adafruit_NeoPixel.h>
