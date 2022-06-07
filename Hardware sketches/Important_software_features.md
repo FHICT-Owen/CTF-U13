@@ -42,12 +42,12 @@ void setup() {
 As can be seen above, the FastLED library has a simple function turn the entire LED strip to a single solid color, which is ideal for what I need to use the LED strip for.
 
 ## Display Driver (tft_eSPI library)
-In order to get the integrated display working on the TTGO T-Display in order to show the users instructions I had to make use of the tft_eSPI library. This library has a lot of drivers for all kinds of different displays and is the easiest way to get the display working. As it is a well-documented and well-adapted library within the Arduino environment. 
+In order to get the integrated display working on the TTGO T-Display in order to show the users instructions I had to make use of the tft_eSPI library. This library has a lot of drivers for all kinds of different displays and is the easiest way to get the display working. As it is a well-documented and well-adapted library within the PlatformIO development environment. 
 
 When setting up the display in conjunction with PlatformIO (Plugin that allows me to use VSCode in order to write code for the microcontroller) I had a few troubles that I ran into. I was trying to modify the library itself to get the code working but found out by going through the code that platformio users can define a custom user setup which I used to load the correct settings and also free up the main SPI interface so that it could be used for the RFID reader.
 
 ## MQTT Communication
-In order to get MQTT communication working I had to implement an MQTT client into the sketch that allowed you to connect over Wi-Fi in order to send and receive messages. The EspMQTTClient library did just that and also had integrated Wi-Fi connection support which made it super easy to connect the Microcontroller to a Wi-Fi network and then establish a connection with the MQTT broker.
+In order to get MQTT communication working I had to implement an MQTT client into the sketch that allowed you to connect over Wi-Fi in order to send and receive messages. The EspMQTTClient library did just that and also had integrated Wi-Fi connection support which made it super easy to connect the Microcontroller to a Wi-Fi network and then establish a connection with the MQTT broker. I found this library by going to the platformio libraries explorer and typing MQTT client. I then proceeded to look at the examples of each of the available libraries to see which would be easy to implement.
 
 ## Multi-threading
 I didn't think I would have to use multi-threading but in order to get the desired blink effect I thought that making use of the second core on the microcontroller to run the blink code would be the easiest. Multi-threading also made the blink time very consistent and most important of all multi-threading made the blink code itself non-blocking for the rest of the code in the sketch.
