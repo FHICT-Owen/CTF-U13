@@ -17,7 +17,7 @@ The LED strip used in each prototype consists of 6 WS2812B LEDs a.k.a. Neopixel 
 ## Phone-style Keypad
 When it comes to number inputs for the code game we have a few different choices for keypads. The regular flat keypad which is used most often of which an image can be seen below.
 
-<img src="https://cdn.myonlinestore.eu/e40d5160-bac0-4897-baae-d6065a5d5915/image/cache/full/123e7714e988a4b465afb129f76527f8e2acb256.jpg">
+<img src="https://cdn.myonlinestore.eu/e40d5160-bac0-4897-baae-d6065a5d5915/image/cache/full/123e7714e988a4b465afb129f76527f8e2acb256.jpg" height="500">
 
 A tactile non-flat keypad.
 
