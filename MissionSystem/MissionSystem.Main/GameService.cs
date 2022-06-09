@@ -5,12 +5,12 @@ using MissionSystem.Interface.Services;
 using MissionSystem.Util;
 
 namespace MissionSystem.Main;
-public class GameService : SubscribableResource<Game>, IGameService
+public class GameService : SubscribableResource<Match>, IGameService
 {
     private IServiceProvider serviceProvider;
     private IArenaService arenaService;
     
-    private List<Game> games = new();
+    private List<Match> games = new();
 
     public GameService(IServiceProvider provider)
     {
@@ -20,50 +20,50 @@ public class GameService : SubscribableResource<Game>, IGameService
     }
     public IBaseGame GetGame(string game, Arena arena)
     {
-        string key = $"{game}_{arena.Name}";
+        int key = arena.Game?.Id ?? -1;
         // if (type == "ctf") return GameFactory.GetBaseGame(serviceProvider);
-        if (!games.Any(x => x.Key == key))
+        if (!games.Any(x => x.Id == key))
         {
             return CreateGame(game, arena);
         }
 
-        return games.Find(game => game.Key == key).BaseGame;
+        return games.Find(game => game.Id == key).BaseGame;
     }
 
     public IBaseGame CreateGame(string game, Arena arena)
     {
-        string key = $"{game}_{arena.Name}";
-        if (!games.Any(x => x.Key == key))
+        int key = arena.Game?.Id ?? -1;
+        if (!games.Any(x => x.Id == key))
         {
-            games.Add(new Game
+            games.Add(new Match
             {
-                Key = key,
-                GameType = game,
+                Id = key,
+                GameTypeName = game,
                 Arena = arena,
-                BaseGame = GameFactory.GetBaseGame(serviceProvider)
+                BaseGame = GameFactory.GetBaseGame(serviceProvider, arena)
             });
 
-            games.Find(game => game.Key == key).BaseGame.Setup();
+            games.Find(game => game.Id == key).BaseGame.Setup();
         }
 
-        return games.Find(game => game.Key == key).BaseGame;
+        return games.Find(game => game.Id == key).BaseGame;
 
     }
 
     public void DeleteGame(string game, Arena arena)
     {
-        games.RemoveAll(x => x.GameType == game && x.Arena.Id == arena.Id);
+        games.RemoveAll(x => x.GameTypeName == game && x.Arena.Id == arena.Id);
     }
 
     public void DeleteGames(string game)
     {
-        games.RemoveAll(x => x.GameType == game);
+        games.RemoveAll(x => x.GameTypeName == game);
     }
 
     public void DeleteGames(Arena arena)
     {
-        List<Game> deleteGames = games.FindAll(x => x.Arena.Id == arena.Id);
-        foreach (Game game in deleteGames)
+        List<Match> deleteGames = games.FindAll(x => x.Arena.Id == arena.Id);
+        foreach (Match game in deleteGames)
         {
             game.BaseGame.Dispose();
             games.Remove(game);

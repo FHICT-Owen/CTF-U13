@@ -37,6 +37,8 @@ public class Gadget
     /// Arenas in which this gadget can be used
     /// </summary>
     public ICollection<Arena> Arenas { get; set; }
+    
+    public ICollection<Match> Matches { get; set; }
 
     public override string ToString()
     {

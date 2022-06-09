@@ -7,5 +7,5 @@ public interface IBaseGame : IFrontendData, IDisposable
     public abstract string GetData();
     public ITimer GetTimer();
     public abstract Task Start();
-    public abstract T? Get<T>(string variable);
+    public abstract void ResetGame();
 }

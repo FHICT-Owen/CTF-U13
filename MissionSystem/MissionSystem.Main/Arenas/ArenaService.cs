@@ -48,6 +48,7 @@ public class ArenaService : SubscribableResource<Arena>, IArenaService
         await using var db = new DataStore();
 
         db.Update(arena);
+
         await db.SaveChangesAsync();
     }
 }

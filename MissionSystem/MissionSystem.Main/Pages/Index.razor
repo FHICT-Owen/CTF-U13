@@ -18,18 +18,23 @@
 @inject IGameService _game
 @inject ILogger<Index> _logger
 @inject IArenaService _arena
+@inject IMatchService _match
 
 <PageTitle>CTF Demo</PageTitle>
 
+@if (redirectToArena)
+{
+    <meta http-equiv="refresh" content="0; url = /arenas" />
+}
+
 <div class="arena-bar">
     @{
-        foreach (Arena a in Arenas)
-        {
-
-            <button id="a.Name" class=@(a == activeArena ? "nav active" : "nav") @onclick='() => SetArena(a)'>
-                @a.Name
-            </button>
-        }
+        if (activeArena != null) foreach (Arena a in Arenas)
+            {
+                <button id="a.Name" class=@(a == activeArena ? "nav active" : "nav") @onclick='() => SetArena(a)'>
+                    @a.Name
+                </button>
+            }
     }
 
     <button id="settings" class="settings" @onclick='() => Settings()'>
@@ -49,49 +54,59 @@
         }
     }
     <div class="timer">
-        <span>@(_timer?.ToString() ?? "00:00")</span>
+        <span>@(_timer?.ToString() ?? "No current game")</span>
     </div>
     <button class="btn btn-outline-warning" @onclick="@ResetMatch">Reset</button>
 </div>
-<div class="demo">
-    <div class="score">
-        <h2>Team Green</h2>
-        <span>@(team1Score | 0)</span>
-    </div>
-    @{
-        foreach (string address in Addresses)
-        {
-            @if (!FlagStates.ContainsKey(address)) FlagStates[address] = new FlagState();
 
-            <div class="status" id=@address>
-                @*<span class="oi oi-flag flag" />*@
-                <div class="flag" style="position: relative; width: 50%; height: 30vh">
-
-                    <i class="bi bi-flag-fill" style="font-size: 150px; position: absolute; left: 25%; color: @FlagStates[address].BackgroundColor"></i>
-                    <i class="bi bi-flag" style="font-size: 150px; position: absolute; left: 25%"></i>
-                </div>
-                <span>@FlagStates[address].CapturedBy</span>
-                <ProgressBar Progress="@FlagStates[address].CapturePercentage" ForegroundColor="@FlagStates[address].ForegroundColor" BackgroundColor="@FlagStates[address].BackgroundColor"></ProgressBar>
-            </div>
-        }
-
-        
+@{
+    if (activeArena == null || activeArena.Game == null)
+    {
+        <h1 style="">No current game</h1>
     }
-    <div class="score">
-        <h2>Team Red</h2>
-        <span>@(team2Score | 0)</span>
-    </div>
-</div>
+    else
+    {
+        <div class="demo">
+            <div class="score">
+                <h2>Team Green</h2>
+                <span>@(team1Score | 0)</span>
+            </div>
+            @{
+                foreach (string address in Addresses)
+                {
+                    @if (!FlagStates.ContainsKey(address)) FlagStates[address] = new FlagState();
+
+                    <div class="status" id=@address>
+                        @*<span class="oi oi-flag flag" />*@
+                        <div class="flag" style="position: relative; width: 50%; height: 30vh">
+
+                            <i class="bi bi-flag-fill" style="font-size: 150px; position: absolute; left: 25%; color: @FlagStates[address].BackgroundColor"></i>
+                            <i class="bi bi-flag" style="font-size: 150px; position: absolute; left: 25%"></i>
+                        </div>
+                        <ProgressBar Progress="@FlagStates[address].CapturePercentage" ForegroundColor="@FlagStates[address].ForegroundColor" BackgroundColor="@FlagStates[address].BackgroundColor"></ProgressBar>
+                    </div>
+                }
+
+
+            }
+            <div class="score red">
+                <h2>Team Red</h2>
+                <span>@(team2Score | 0)</span>
+            </div>
+        </div>
+    }
+}
+
 
 @{
     if (settings)
     {
         <div style="    opacity: 0.5;
-                background-color: #ccc;
-                position: absolute;
-                width: 100vw;
-                height: 100vh;
-                top: 0;
+                                background-color: #ccc;
+                                position: absolute;
+                                width: 100vw;
+                                height: 100vh;
+                                top: 0;
 " @onclick="() => settings = false">
         </div>
         <div style="width: 50vw; height: 50vh; position: absolute; left: 25%; top: 25%; opacity: 1.0; background-color: white">
@@ -112,6 +127,8 @@
     private IBaseGame ctf;
     private ITimer? _timer;
 
+    private bool redirectToArena = false;
+
     private int team1Score;
     private int team2Score;
 
@@ -130,23 +147,39 @@
         Arenas = await _arena.GetArenasAsync();
         _arena.Added += Add;
         _arena.Deleted += Delete;
+        _match.Added += Add;
 
+        if (Arenas.Count < 1)
+        {
+            redirectToArena = true;
+            return;
+        }
         activeArena = Arenas[0];
 
-        ctf = _game.GetGame("CTF", activeArena);
+        if (activeArena.Game == null) return;
+        ctf = activeArena.Game.BaseGame;
+
+        if (ctf == null) activeArena.Game.BaseGame = _game.GetGame(activeArena.Game.GameTypeName, activeArena);
+        ctf = activeArena.Game.BaseGame;
+
+        // ctf = _game.GetGame("CTF", activeArena);
         ctf.updateHandler += Update;
 
         _timer = ctf.GetTimer();
 
         _timer.Update += OnTick;
 
-        GetAddresses(new Gadget());
+        GetAddresses();
 
     }
 
-    private void GetAddresses(Gadget g)
+    private async Task GetArenas()
     {
+        Arenas = await _arena.GetArenasAsync();
+    }
 
+    private void GetAddresses(Gadget g = null)
+    {
         string data = ctf.GetData();
         Addresses = JsonConvert.DeserializeObject<List<string>>(data);
         InvokeAsync(StateHasChanged);
@@ -156,18 +189,30 @@
     {
         activeArena = arena;
 
+        if (arena.Game == null)
+        {
+            _timer.Update -= OnTick;
+            _timer = null;
+            return;
+        }
+
+        ctf.updateHandler -= Update;
 
         ctf = _game.GetGame("CTF", activeArena);
         ctf.updateHandler += Update;
 
+        if (_timer != null) _timer.Update -= OnTick;
         _timer = ctf.GetTimer();
         _timer.Update += OnTick;
 
         _started = _timer.IsRunning;
 
+        GetAddresses();
+
     }
 
-    private struct UpdateData {
+    private struct UpdateData
+    {
         public int Team1Score;
         public int Team2Score;
         public Dictionary<string, FlagState>? FlagStates;
@@ -198,7 +243,8 @@
             FlagState f = kvPair.Value;
             string address = kvPair.Value.Address;
 
-            switch (f.Capturer) {
+            switch (f.Capturer)
+            {
                 case 0:
                     f.ForegroundColor = "#342e37";
                     break;
@@ -220,7 +266,7 @@
             FlagStates[kvPair.Key] = f;
         }
 
-        _started = _timer.IsRunning;
+        _started = _timer?.IsRunning ?? false;
 
         InvokeAsync(StateHasChanged);
 
@@ -238,9 +284,17 @@
         InvokeAsync(StateHasChanged);
     }
 
-    private void CreateMatch(Match match)
+    private async Task CreateMatch(Match match)
     {
+        Console.WriteLine("test");
+        await _match.DeleteMatchAsync(activeArena.Game);
+        await _match.CreateMatchAsync(match);
+        settings = false;
+        int arenaId = match.Arena.Id;
 
+        Arenas = await _arena.GetArenasAsync();
+        activeArena = Arenas.First(a => a.Id == arenaId);
+        InvokeAsync(StateHasChanged);
     }
 
     private void Add(Arena a)
@@ -255,6 +309,30 @@
         {
             Console.WriteLine(arena.Name);
         }
+    }
+
+    private void Add(Match m)
+    {
+        GetArenas();
+
+        Arenas.FirstOrDefault(a => a.Id == m.Arena.Id).Game = m;
+        if (activeArena.Id == m.Arena.Id)
+        {
+            activeArena.Game = m;
+        ctf.updateHandler -= Update;
+
+            ctf = m.BaseGame ?? _game.GetGame(m.GameTypeName, activeArena);
+        ctf.updateHandler += Update;
+
+            _timer = ctf.GetTimer();
+        }
+        InvokeAsync(() =>
+        {
+
+
+            StateHasChanged();
+        });
+
     }
 
     private void Delete(Arena a)
@@ -278,7 +356,7 @@
     {
         _started = false;
         _timer.ResetTimer();
-
+        ctf.ResetGame();
     }
 
     private void Settings()

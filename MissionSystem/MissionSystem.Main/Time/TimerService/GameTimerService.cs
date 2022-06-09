@@ -25,7 +25,7 @@ public class GameTimerService : IGameTimerService
         return timer;
     }
 
-    public void GameDeleted(Game game)
+    public void GameDeleted(Match game)
     {
         ITimer t = game.BaseGame.GetTimer();
         DeleteTimer(t);

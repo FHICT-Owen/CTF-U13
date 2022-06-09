@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using MissionSystem.Interface;
+using MissionSystem.Interface.Models;
 using MissionSystem.Interface.Services;
 using MissionSystem.Interface.Timer;
 
@@ -14,6 +15,10 @@ public abstract class BaseGame : IBaseGame
     public abstract event EventHandler<string>? updateHandler;
     public abstract event EventHandler<string>? init;
 
+    protected readonly Arena Arena;
+    protected readonly Match Match;
+
+    protected List<Gadget> Gadgets = new List<Gadget>();
 
     protected ITimer timer { get; set; }
 
@@ -22,18 +27,22 @@ public abstract class BaseGame : IBaseGame
         throw new NotImplementedException();
     }
     
-    public BaseGame(IServiceProvider provider)
+    public BaseGame(IServiceProvider provider, Arena arena)
     {
         gameTimerService = provider.GetService<IGameTimerService>();
         gadgetStateService = provider.GetService<IGadgetStateService>();
         gadgetSettingsService = provider.GetService<IGadgetSettingsService>();
         gadgetService = provider.GetService<IGadgetService>();
 
+        Arena = arena;
+        Match = arena.Game;
     }
 
     public abstract Task Setup();
 
     public abstract Task Start();
+
+    public abstract void ResetGame();
 
     protected void CreateTimer(int duration)
     {
@@ -43,6 +52,11 @@ public abstract class BaseGame : IBaseGame
     public ITimer GetTimer()
     {
         return timer;
+    }
+
+    async protected Task GetGadgets()
+    {
+        Gadgets = await gadgetService.GetGadgetsByMatch(Match);
     }
 
     public ITimer ResetTimer()
@@ -60,7 +74,5 @@ public abstract class BaseGame : IBaseGame
     {
         timer.Dispose();
     }
-
-    public abstract T? Get<T>(string variable);
 }
 

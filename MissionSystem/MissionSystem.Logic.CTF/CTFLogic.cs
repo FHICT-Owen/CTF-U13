@@ -7,15 +7,12 @@ namespace MissionSystem.Logic.CTF;
 
 public class CTFLogic : BaseGame
 {
-    private List<Gadget> Gadgets = new List<Gadget>();
-
-    private int capturedBy;
     private Dictionary<string, FlagState> FlagStates = new();
     private int team1Score = 0;
     private int team2Score = 0;
     private IUnsubscribable update;
 
-    public CTFLogic(IServiceProvider provider) : base(provider)
+    public CTFLogic(IServiceProvider provider, Arena arena) : base(provider, arena)
     {
 
     }
@@ -23,17 +20,12 @@ public class CTFLogic : BaseGame
     public override event EventHandler<string>? updateHandler;
     public override event EventHandler<string>? init;
 
-    public override T Get<T>(string variable)
-    {
-        return default(T);
-    }
-
     public async override Task Setup()
     {
-        CreateTimer(1200);
+        CreateTimer(Match.Duration);
         timer.Update += Update;
 
-        Gadgets = await gadgetService.GetGadgetsAsync();
+        await GetGadgets();
 
         foreach (Gadget gadget in Gadgets)
         {
@@ -44,10 +36,10 @@ public class CTFLogic : BaseGame
                 FlagState f = FlagState.FromRaw(callback);
                 Console.WriteLine($"{f.CapturePercentage}, {f.Capturer}");
 
-                if (f.CapturePercentage == 0 && f.Capturer == 0)
-                {
-                    f.CapturedBy = 0;
-                }
+                //if (f.CapturePercentage == 0 && f.Capturer == 0)
+                //{
+                //    f.CapturedBy = 0;
+                //}
 
                 if (f.CapturePercentage >= 100)
                 {
@@ -80,6 +72,7 @@ public class CTFLogic : BaseGame
                 {"isEnglish", false},
             });
 
+
         }
 
         // score multiplier?
@@ -87,9 +80,22 @@ public class CTFLogic : BaseGame
         // linking teams with codes sent by the devices?
     }
 
-    private async Task GetGadgets()
+    public override void ResetGame()
     {
-        Gadgets = await gadgetService.GetGadgetsAsync();
+        team1Score = 0;
+        team2Score = 0;
+
+        for (int i = 0; i < FlagStates.Values.Count; i++)
+        {
+            FlagState flagState = FlagStates.Values.ToArray()[i];
+
+            flagState.CapturePercentage = 0;
+            flagState.CapturedBy = 0;
+
+            FlagStates[flagState.Address] = flagState;
+        }
+
+        Update(this, null);
     }
 
     public override string GetData()

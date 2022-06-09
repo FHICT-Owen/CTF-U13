@@ -1,4 +1,5 @@
-﻿using MissionSystem.Interface.Services;
+﻿using MissionSystem.Interface.Models;
+using MissionSystem.Interface.Services;
 using MissionSystem.Logic;
 using MissionSystem.Logic.CTF;
 
@@ -12,9 +13,9 @@ namespace MissionSystem.Factory
             gameTypeService.RegisterGameType("koh", new CtfGameType("King Of The Hill", 1));
         }
 
-        public static BaseGame GetBaseGame(IServiceProvider provider)
+        public static BaseGame GetBaseGame(IServiceProvider provider, Arena arena)
         {
-            return new CTFLogic(provider);
+            return new CTFLogic(provider, arena);
         }
     }
 }

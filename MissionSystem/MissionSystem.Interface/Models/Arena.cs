@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MissionSystem.Interface.Models;
 
@@ -18,5 +19,10 @@ public class Arena
     /// <summary>
     /// Gadgets which can be used in this arena
     /// </summary>
-    public ICollection<Gadget> Gadgets { get; set; }
+    // public ICollection<Gadget>? Gadgets { get; set; }
+
+    [ForeignKey("GameId")]
+    public Match? Game { get; set; }
+
+    public int? GameId { get; set; }
 }

@@ -4,6 +4,7 @@
 @using System.Net.NetworkInformation
 
 @inject IArenaService ArenaService
+@inject IMatchService MatchService
 @inject IGadgetService GadgetService
 @inject IGameTypeService GameTypeService
 
@@ -14,7 +15,7 @@
 
     <div class="mb-3">
         <label for="missionInput" class="form-label">Mission</label>
-        <InputSelect required id="missionInput" class="form-select" @bind-Value="SelectedGameTypeId">
+        <InputSelect required id="missionInput" class="form-select" @bind-Value="_createMatch.GameTypeName">
             <option disabled value="">Select&hellip;</option>
             @if (_gameTypes != null)
             {
@@ -27,22 +28,22 @@
     </div>
     
         @* TODO: Somehow load gametype-specific settings here instead of hard-coding *@
-        @if (_match.GameTypeId == "ctf" || _match.GameTypeId == "koh")
+        @*@if (_match.GameTypeName == "ctf" || _match.GameTypeName == "koh")
         {
             <div class="mb-3">
                 <label for="ctfGameType" class="form-label">Game Type</label>
-                <InputSelect required id="ctfGameType" class="form-select" @bind-Value="_match.IsCodeGame">
+                <InputSelect required id="ctfGameType" class="form-select" @bind-Value='_match.Options["IsCodeGame"]'>
                     <option value="false">Card Game</option>
                     <option value="true">Code Game</option>
                 </InputSelect>
             </div>
-        }
+        }*@
 
     <div class="mb-3">
         <label for="durationInput" class="form-label">Match Duration</label>
-        <InputSelect required id="durationInput" class="form-select" @bind-Value="_match.Duration">
+        <InputSelect required id="durationInput" class="form-select" @bind-Value="_createMatch.Duration">
             <option disabled value="0">Select&hellip;</option>
-            <option value="5">10 Minutes</option>
+            <option value="10">10 Minutes</option>
             <option value="15">15 Minutes</option>
             <option value="20">20 Minutes</option>
         </InputSelect>
@@ -50,7 +51,7 @@
 
     <div class="mb-3">
         <label for="arenaInput" class="form-label">Arena</label>
-        <InputSelect required id="arenaInput" class="form-select" @bind-Value="_match.ArenaId">
+        <InputSelect required id="arenaInput" class="form-select" @bind-Value="_createMatch.ArenaId">
             <option disabled value="0">Select&hellip;</option>
             @foreach (var (id, arena) in _arenas)
             {
@@ -61,7 +62,7 @@
 
     <div class="mb-3">
         <label for="languageInput" class="form-label">Language</label>
-        <InputSelect required id="languageInput" class="form-select" @bind-Value="_match.IsEnglish">
+        <InputSelect required id="languageInput" class="form-select" @bind-Value="_createMatch.IsEnglish">
             <option value="false">Dutch</option>
             <option value="true">English</option>
         </InputSelect>
@@ -69,7 +70,7 @@
 
     <div class="mb-3">
         <label for="gadgetSelect" class="form-label">Gadgets</label>
-        <InputSelect multiple required id="gadgetSelect" class="form-select" @bind-Value="_match.GadgetIds">
+        <InputSelect multiple required id="gadgetSelect" class="form-select" @bind-Value="_createMatch.GadgetIds">
             @foreach (var gadget in FilteredGadgets)
             {
                 <option value="@gadget.MacAddress">@gadget.Name</option>
@@ -85,21 +86,39 @@
     [Parameter]
     public EventCallback<Match> OnMatchCreate { get; set; }
 
-    private readonly Match _match = new()
+    private class CreateMatch
     {
-        GameTypeId = "",
-        ArenaId = 0,
-        Duration = 0,
-        GadgetIds = new string[] {},
-        IsEnglish = false,
-    };
+        public int ArenaId { get; set; }
+        public int Duration { get; set; }
+        public bool IsEnglish { get; set; }
+        public string[] GadgetIds { get; set; }
+        public string GameTypeName { get; set; }
+    }
+
+    private CreateMatch _createMatch = new()
+        {
+            ArenaId = 0,
+            Duration = 0,
+            IsEnglish = false,
+            GadgetIds = new string[0],
+            GameTypeName = ""
+        };
+
+    private Match _match = new()
+        {
+            GameTypeName = "",
+            Arena = new Arena(),
+            Duration = 0,
+            Gadgets = new List<Gadget>(),
+            IsEnglish = false,
+        };
 
     private string SelectedGameTypeId
     {
-        get => _match.GameTypeId;
+        get => _createMatch.GameTypeName;
         set
         {
-            _match.GameTypeId = value;
+            _createMatch.GameTypeName = value;
             OnSelectGameType();
         }
     }
@@ -168,7 +187,7 @@
     {
         if (_gameTypes.ContainsKey(SelectedGameTypeId))
         {
-            _match.Duration = _gameTypes[SelectedGameTypeId].DefaultDuration;
+            _createMatch.Duration = _gameTypes[SelectedGameTypeId].DefaultDuration;
         }
     }
 
@@ -192,7 +211,31 @@
 
     private async void HandleValidSubmit()
     {
-        await OnMatchCreate.InvokeAsync();
+        Arena arena = await ArenaService.FindArenaAsync(_createMatch.ArenaId);
+
+        List<Gadget> gadgets = new(); 
+
+        foreach (string gadgetId in _createMatch.GadgetIds)
+        {
+            gadgets.Add(await GadgetService.FindGadgetAsync(PhysicalAddress.Parse(gadgetId)));
+
+        }
+        _match = new()
+        {
+            GameTypeName = _createMatch.GameTypeName,
+            Arena = arena,
+            Duration = _createMatch.Duration * 60,
+            Gadgets = gadgets,
+            IsEnglish = _createMatch.IsEnglish,
+            Name = ""
+        };
+
+        arena.Game = _match;
+
+        // await ArenaService.UpdateArenaAsync(arena);
+
+        OnMatchCreate.InvokeAsync(_match);
+
     }
 
 }

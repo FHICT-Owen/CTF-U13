@@ -16,6 +16,12 @@ public interface IGadgetService : ISubscribableResource<Gadget>
     public Task<List<Gadget>> GetGadgetsAsync();
 
     /// <summary>
+    /// Gets a list of all gadgets in the match
+    /// </summary>
+    /// <param name="match">The match to get the gadgets from</param>
+    /// <returns>All gadgets currently in the match</returns>
+    public Task<List<Gadget>> GetGadgetsByMatch(Match match);
+    /// <summary>
     /// Adds a new gadget to the system
     /// </summary>
     /// <param name="gadget">Gadget to add</param>
