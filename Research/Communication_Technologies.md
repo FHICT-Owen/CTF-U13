@@ -82,12 +82,6 @@ The table below shows a direct comparison of various aspects of all 3 systems pu
       <td>Transactional (order formation and placement, and user requests)</td>
     </tr>
     <tr>
-      <th>Consumer Mode</th>
-      <td>Dumb broker/smart consumer</td>
-      <td>Smart broker/dumb consumer</td>
-      <td>N/A</td>
-    </tr>
-    <tr>
       <th>Payload Size</th>
       <td>Default 1MB limit</td>
       <td>No constraints</td>
@@ -95,6 +89,8 @@ The table below shows a direct comparison of various aspects of all 3 systems pu
     </tr>
   </tbody>
 </table>
+
+As can be seen Kafka is way more suited for high quantity data streaming with replay functionality and message retention whilst RabbitMQ and MQTT are more suited to our requirements.
 
 ### 3. LAN setup
 All 3 options can be integrated into a LAN environment, so we're going to take a deeper dive into which one would be the easiest to integrate into our application so that it can be used on the local private network we have at the location. MQTT allows for the use of a local broker that can be integrated into the application as a hosted service. For both RabbitMQ and Kafka it would be required to run a seperate application/instance on which the broker or cluster for communication can be run.
