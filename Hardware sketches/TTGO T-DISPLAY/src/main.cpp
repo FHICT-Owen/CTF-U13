@@ -103,6 +103,52 @@ void SPIFFSInit()
     Serial.println("\r\nInitialisation done.");
 }
 
+void reset(bool resetFully)
+{
+    vTaskSuspend(blinkTask);
+    tft.fillScreen(TFT_BLACK);
+    if (isEnglish && isCodeGame)
+    {
+        tft.drawString("Enter code", tftCenterWidth, tftCenterHeight);
+        tft.setTextDatum(ML_DATUM);
+        tft.drawString("*=Back    #=Confirm", 5, 125);
+        tft.setTextDatum(MC_DATUM);
+    }
+    if (!isEnglish && isCodeGame)
+    {
+        tft.drawString("Voer code in", tftCenterWidth, tftCenterHeight);
+        tft.setTextDatum(ML_DATUM);
+        tft.drawString("*=Back    #=Confirm", 5, 125);
+        tft.setTextDatum(MC_DATUM);
+    }
+    if (isEnglish && !isCodeGame)
+    {
+        tft.drawString("Scan card", tftCenterWidth, tftCenterHeight);
+    }
+    if (!isEnglish && !isCodeGame)
+    {
+        tft.drawString("Scan kaart", tftCenterWidth, tftCenterHeight);
+    }
+    if (resetFully)
+    {
+        lastUID = "";
+        captured = false;
+        progressCounter = 0;
+    }
+    if (captured == true && lastUID == teamROGCode)
+    {
+        FastLED.showColor(teamROGColor);
+    }
+    else if (captured == true && lastUID == teamSFACode)
+    {
+        FastLED.showColor(teamSFAColor);
+    }
+    else
+    {
+        FastLED.showColor(CRGB::White);
+    }
+}
+
 void drawingBatteryIcon(String filePath)
 {
     fex.drawBmp(filePath, ICON_POS_X, 0);
@@ -200,52 +246,6 @@ void blinkTaskCode(void *pvParameters)
         vTaskDelay(500);
         FastLED.showColor(CRGB::Black);
         vTaskDelay(500);
-    }
-}
-
-void reset(bool resetFully)
-{
-    vTaskSuspend(blinkTask);
-    tft.fillScreen(TFT_BLACK);
-    if (isEnglish && isCodeGame)
-    {
-        tft.drawString("Enter code", tftCenterWidth, tftCenterHeight);
-        tft.setTextDatum(ML_DATUM);
-        tft.drawString("*=Back    #=Confirm", 5, 125);
-        tft.setTextDatum(MC_DATUM);
-    }
-    if (!isEnglish && isCodeGame)
-    {
-        tft.drawString("Voer code in", tftCenterWidth, tftCenterHeight);
-        tft.setTextDatum(ML_DATUM);
-        tft.drawString("*=Back    #=Confirm", 5, 125);
-        tft.setTextDatum(MC_DATUM);
-    }
-    if (isEnglish && !isCodeGame)
-    {
-        tft.drawString("Scan card", tftCenterWidth, tftCenterHeight);
-    }
-    if (!isEnglish && !isCodeGame)
-    {
-        tft.drawString("Scan kaart", tftCenterWidth, tftCenterHeight);
-    }
-    if (resetFully)
-    {
-        lastUID = "";
-        captured = false;
-        progressCounter = 0;
-    }
-    if (captured == true && lastUID == teamROGCode)
-    {
-        FastLED.showColor(teamROGColor);
-    }
-    else if (captured == true && lastUID == teamSFACode)
-    {
-        FastLED.showColor(teamSFAColor);
-    }
-    else
-    {
-        FastLED.showColor(CRGB::White);
     }
 }
 
