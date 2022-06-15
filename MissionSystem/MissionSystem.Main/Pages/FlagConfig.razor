@@ -1,0 +1,138 @@
+@page "/FlagConfig"
+@using MissionSystem.Util
+@using MissionSystem.Interface.Services
+@using MissionSystem.Interface.Models
+@using System.Drawing
+@using System.Net.NetworkInformation
+@inject IGadgetSettingsService GadgetSettingsService
+@inject IGadgetService GadgetService
+<div class="container mt-3">
+    <h1>Update flag config</h1>
+
+    <EditForm Model="@_form">
+        <div class="mb-3">
+            <label for="gadgetInput" class="form-label">Flag</label>
+            <InputSelect @bind-Value="_form.GadgetId" id="gadgetInput" class="form-select">
+                @if (_gadgets != null)
+                {
+                    <option selected disabled value="">Select&hellip;</option>
+                    foreach (var gadget in _gadgets)
+                    {
+                        <option value="@gadget.MacAddress">@gadget.Name</option>
+                    }
+                }
+            </InputSelect>
+        </div>
+        <div class="mb-3 form-check">
+            <label for="enabledInput" class="form-check-label">Enabled</label>
+            <InputCheckbox @bind-Value="_form.Enabled" id="enabledInput" class="form-check-input"/>
+        </div>
+        <div class="row mb-3">
+            <div class="col">
+                <label for="typeInput" class="form-label">Game Type</label>
+                <InputSelect @bind-Value="_form.GameType" id="typeInput" class="form-select" required>
+                    <option selected disabled value="">Select&hellip;</option>
+                    <option value="code">Code Game</option>
+                    <option value="card">Card Game</option>
+                </InputSelect>
+            </div>
+            <div class="col">
+                <label for="langInput" class="form-label">Language</label>
+                <InputSelect @bind-Value="_form.Language" id="langInput" class="form-select" required>
+                    <option selected disabled value="">Select&hellip;</option>
+                    <option value="english">English</option>
+                    <option value="dutch">Dutch</option>
+                </InputSelect>
+            </div>
+        </div>
+
+        @{
+            var codeName = "Code";
+
+            if (_form.GameType == "card")
+            {
+                codeName = "Card ID";
+            }
+        }
+        <div class="mb-3 row">
+            <div class="col-sm-2">
+                <label for="rogCodeInput" class="form-label">ROG @codeName</label>
+                <InputText @bind-Value="_form.ROGCode" id="rogCodeInput" class="form-control"/>
+            </div>
+            <div class="col-sm-2">
+                <label for="rogColorInput" class="form-label">ROG Color</label>
+                <input type="color" @bind="_form.ROGColorStr" id="rogColorInput" class="form-control form-control-color"/>
+            </div>
+        </div>
+        <div class="mb-3 row">
+            <div class="col-sm-2">
+                <label for="sfaCodeInput" class="form-label">SFA @codeName</label>
+                <InputText @bind-Value="_form.SFACode" id="sfaCodeInput" class="form-control"/>
+            </div>
+            <div class="col-sm-2">
+                <label for="sfaColorInput" class="form-label">SFA Color</label>
+                <input type="color" @bind="_form.SFAColorStr" id="sfaColorInput" class="form-control form-control-color"/>
+            </div>
+        </div>
+
+        <button @onclick="OnBtnClick" disabled="@(_form.GadgetId == null)" class="btn btn-primary">Send settings</button>
+    </EditForm>
+
+</div>
+
+@code {
+
+    private TestForm _form = new();
+
+    private List<Gadget>? _gadgets;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _gadgets = (await GadgetService.GetGadgetsAsync()).Where(s => s.Type.RefId == "flag").ToList();
+    }
+
+    private void OnBtnClick()
+    {
+        var address = PhysicalAddress.Parse(_form.GadgetId);
+
+        GadgetSettingsService.SetSettings(address, new Dictionary<string, object>()
+        {
+            {"teamROGColor", _form.ROGColor.ToArgb() & 0x00FFFFFF},
+            {"teamSFAColor", _form.SFAColor.ToArgb() & 0x00FFFFFF},
+            {"captured", false},
+            {"teamROGCode", _form.ROGCode},
+            {"teamSFACode", _form.SFACode},
+            {"isCodeGame", _form.GameType == "code"},
+            {"isEnglish", _form.Language == "english"},
+            {"disabled", !_form.Enabled},
+        });
+
+        GadgetSettingsService.UpdateSettings(address);
+    }
+
+    class TestForm
+    {
+        public string? GadgetId { get; set; }
+        public string? GameType { get; set; }
+        public string? Language { get; set; }
+        public Color ROGColor { get; set; } = Color.Red;
+        public Color SFAColor { get; set; } = Color.Green;
+
+        public string ROGColorStr
+        {
+            get => ROGColor.ToHexString();
+            set => ROGColor = ColorTranslator.FromHtml(value);
+        }
+
+        public string SFAColorStr
+        {
+            get => SFAColor.ToHexString();
+            set => SFAColor = ColorTranslator.FromHtml(value);
+        }
+
+        public bool Enabled { get; set; } = true;
+        public string ROGCode { get; set; } = "1111";
+        public string SFACode { get; set; } = "2222";
+    }
+
+}
