@@ -1,5 +1,5 @@
 # Software features
-This document summarizes the most important features that I had to use to get the hardware prototype to the current functional level. Each of the sections below summarizes one technology, explaining why I had to use this technology in order to achieve my goals for the hardware.
+This document summarizes the most important features that I had to use to get the hardware prototype to the current functional level. Each of the sections below summarizes one technology, explaining why I had to use this technology in order to achieve my goals for the hardware. The final uses of the software features can be seen within the [main.cpp](https://github.com/FHICT-Owen/CTF-U13/blob/production/Hardware%20sketches/TTGO%20T-DISPLAY/src/main.cpp) file within the GitHub repository.
 
 ## LED Strip
 After having developed the scaled down version of the capture point we still wanted to use some kind of accent light in order to indicate to the players to which team the capture point in question belongs. Victor brought along a WS2812B led strip in order to achieve this. From doing a quick search online there were 2 main libraries in use by people online and those were the FastLED library and the Adafruit NeoPixel library. 
@@ -39,7 +39,7 @@ void setup() {
 }
 ```
 
-As can be seen above, the FastLED library has a simple function turn the entire LED strip to a single solid color, which is ideal for what I need to use the LED strip for.
+As can be seen above, the FastLED library has a simple function turn the entire LED strip to a single solid color, which is ideal for what I need to use the LED strip for. The final implementation can be seen in the [main.cpp](https://github.com/FHICT-Owen/CTF-U13/blob/production/Hardware%20sketches/TTGO%20T-DISPLAY/src/main.cpp) file within the GitHub repository.
 
 ## Display Driver (tft_eSPI library)
 In order to get the integrated display working on the TTGO T-Display in order to show the users instructions I had to make use of the tft_eSPI library. This library has a lot of drivers for all kinds of different displays and is the easiest way to get the display working. As it is a well-documented and well-adapted library within the PlatformIO development environment. 
