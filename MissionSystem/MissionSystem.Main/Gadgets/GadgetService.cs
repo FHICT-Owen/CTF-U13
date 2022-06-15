@@ -20,15 +20,6 @@ public class GadgetService : SubscribableResource<Gadget>, IGadgetService
         return await db.Gadgets.ToListAsync();
     }
 
-    public async Task<List<Gadget>> GetGadgetsByMatch(Match match)
-    {
-        await using var db = new DataStore();
-        return await db.Gadgets
-            .Where(gadget => gadget.Matches
-                .Any(gadgetMatch => gadgetMatch.Id == match.Id))
-            .ToListAsync();
-    }
-
     public async Task<Gadget?> FindGadgetAsync(PhysicalAddress id)
     {
         await using var db = new DataStore();

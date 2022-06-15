@@ -25,7 +25,4 @@ public class Arena
 
     [NotMapped]
     public Match? Game { get; set; }
-    
-    [NotMapped]
-    public int? GameId { get; set; }
 }

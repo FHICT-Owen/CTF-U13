@@ -33,11 +33,7 @@ public class Gadget
     [Required]
     public string Name { get; set; }
 
-    /// <summary>
-    /// Arenas in which this gadget can be used
-    /// </summary>
-    public ICollection<Arena> Arenas { get; set; }
-    
+    [NotMapped]
     public ICollection<Match> Matches { get; set; }
 
     public override string ToString()

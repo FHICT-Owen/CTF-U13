@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace MissionSystem.Interface.Models
 {
+    [NotMapped]
     public class Match
     {   
          /// <summary>

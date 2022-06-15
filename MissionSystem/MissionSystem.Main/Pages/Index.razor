@@ -301,7 +301,6 @@
         await _game.CreateMatchAsync(match);
         settings = false;
         int arenaId = match.Arena.Id;
-        match.Arena.GameId = arenaId;
 
         await _arena.UpdateArenaAsync(match.Arena);
         Arenas = await _arena.GetArenasAsync();
