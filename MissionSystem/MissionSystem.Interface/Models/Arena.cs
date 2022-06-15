@@ -15,14 +15,17 @@ public class Arena
     /// Name of the arena
     /// </summary>
     public string Name { get; set; }
-    
+
     /// <summary>
     /// Gadgets which can be used in this arena
     /// </summary>
     // public ICollection<Gadget>? Gadgets { get; set; }
 
-    [ForeignKey("GameId")]
-    public Match? Game { get; set; }
+    //  [ForeignKey("GameId")]
 
+    [NotMapped]
+    public Match? Game { get; set; }
+    
+    [NotMapped]
     public int? GameId { get; set; }
 }

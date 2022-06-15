@@ -8,67 +8,60 @@ namespace MissionSystem.Main;
 public class GameService : SubscribableResource<Match>, IGameService
 {
     private IServiceProvider serviceProvider;
-    private IArenaService arenaService;
     
-    private List<Match> games = new();
+    private Dictionary<int, Match> games = new();
 
     public GameService(IServiceProvider provider)
     {
         serviceProvider = provider;
-        arenaService = serviceProvider.GetService<IArenaService>();
-        arenaService.Deleted += DeleteGames;
     }
-    public IBaseGame GetGame(string game, Arena arena)
+    public IBaseGame GetBaseGame(Match match)
     {
-        int key = arena.Game?.Id ?? -1;
-        // if (type == "ctf") return GameFactory.GetBaseGame(serviceProvider);
-        if (!games.Any(x => x.Id == key))
+        if (!games.ContainsKey(match.Arena.Id))
         {
-            return CreateGame(game, arena);
+            return CreateGame(match);
         }
 
-        return games.Find(game => game.Id == key).BaseGame;
+        return games[match.Arena.Id].BaseGame ?? CreateGame(match);
     }
 
-    public IBaseGame CreateGame(string game, Arena arena)
+    public async Task<Match> FindMatchById(int id)
     {
-        int key = arena.Game?.Id ?? -1;
-        if (!games.Any(x => x.Id == key))
-        {
-            games.Add(new Match
-            {
-                Id = key,
-                GameTypeName = game,
-                Arena = arena,
-                BaseGame = GameFactory.GetBaseGame(serviceProvider, arena)
-            });
+        if (!games.ContainsKey(id)) return null;
+        Match match = games[id];
 
-            games.Find(game => game.Id == key).BaseGame.Setup();
+        match.BaseGame = GetBaseGame(match);
+
+        return match;
+    }
+
+    public IBaseGame CreateGame(Match match)
+    {
+        int key = match.Arena.Id;
+
+        if (!games.ContainsKey(match.Arena.Id) || games[key].BaseGame == null)
+        {
+            match.BaseGame = GameFactory.GetBaseGame(serviceProvider, match.Arena, match.Duration);
+            games[match.Arena.Id] = match;
+
         }
 
-        return games.Find(game => game.Id == key).BaseGame;
+        return games[key].BaseGame;
 
     }
 
-    public void DeleteGame(string game, Arena arena)
+    public async Task CreateMatchAsync(Match match)
     {
-        games.RemoveAll(x => x.GameTypeName == game && x.Arena.Id == arena.Id);
+        CreateGame(match);
     }
 
-    public void DeleteGames(string game)
+    public async Task DeleteMatchAsync(Match match)
     {
-        games.RemoveAll(x => x.GameTypeName == game);
+        games.Remove(match.Arena.Id);
     }
 
-    public void DeleteGames(Arena arena)
+    public void DeleteMatchesByArenaAsync(Arena arena)
     {
-        List<Match> deleteGames = games.FindAll(x => x.Arena.Id == arena.Id);
-        foreach (Match game in deleteGames)
-        {
-            game.BaseGame.Dispose();
-            games.Remove(game);
-
-            OnDeleted(game);
-        }
+        games.Remove(arena.Id);
     }
 }

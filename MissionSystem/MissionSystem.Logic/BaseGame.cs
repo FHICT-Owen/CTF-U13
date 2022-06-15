@@ -44,7 +44,7 @@ public abstract class BaseGame : IBaseGame
 
     public abstract void ResetGame();
 
-    protected void CreateTimer(int duration)
+    public void CreateTimer(int duration)
     {
         timer = gameTimerService.CreateTimer(duration);
     }
@@ -56,7 +56,7 @@ public abstract class BaseGame : IBaseGame
 
     async protected Task GetGadgets()
     {
-        Gadgets = await gadgetService.GetGadgetsByMatch(Match);
+        Gadgets = Match?.Gadgets.ToList();
     }
 
     public ITimer ResetTimer()

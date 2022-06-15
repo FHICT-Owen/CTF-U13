@@ -22,7 +22,6 @@ public class CTFLogic : BaseGame
 
     public async override Task Setup()
     {
-        CreateTimer(Match.Duration);
         timer.Update += Update;
 
         await GetGadgets();

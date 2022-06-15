@@ -13,9 +13,14 @@ namespace MissionSystem.Factory
             gameTypeService.RegisterGameType("koh", new CtfGameType("King Of The Hill", 1));
         }
 
-        public static BaseGame GetBaseGame(IServiceProvider provider, Arena arena)
+        public static BaseGame GetBaseGame(IServiceProvider provider, Arena arena, int duration)
         {
-            return new CTFLogic(provider, arena);
+            BaseGame game = new CTFLogic(provider, arena);
+            game.CreateTimer(duration);
+
+            game.Setup();
+
+            return game;
         }
     }
 }

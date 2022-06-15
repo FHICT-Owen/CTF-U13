@@ -8,7 +8,7 @@ namespace MissionSystem.Data;
 public class DataStore : DbContext
 {
     public DbSet<Gadget> Gadgets { get; set; }
-    public DbSet<Match> Matches { get; set; }
+    // public DbSet<Match> Matches { get; set; }
     public DbSet<Arena> Arenas { get; set; }
     public DbSet<GadgetType> GadgetTypes { get; set; }
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -22,7 +22,7 @@ public class DataStore : DbContext
         modelBuilder.Entity<Gadget>().HasIndex(g => g.MacAddress).IsUnique();
         // modelBuilder.Entity<GadgetType>().HasIndex(t => t.RefId).IsUnique();
 
-        modelBuilder.Entity<Arena>().Navigation(a => a.Game).AutoInclude();
+        // modelBuilder.Entity<Arena>().Navigation(a => a.Game).AutoInclude();
         modelBuilder.Entity<Match>().Navigation(m => m.Gadgets).AutoInclude();
     }
 
