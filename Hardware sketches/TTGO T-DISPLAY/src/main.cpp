@@ -39,7 +39,7 @@ ezButton changeGame(0);
 ezButton disableButton(35);
 
 Battery18650Stats BL(ADC_PIN, CONV_FACTOR, READS);
-char *batteryImages[] = {(char *)"/battery_01.jpg", (char *)"/battery_02.jpg", (char *)"/battery_03.jpg", (char *)"/battery_04.jpg", (char *)"/battery_05.jpg"};
+char *batteryImages[] = {(char *)"/battery_01.bmp", (char *)"/battery_02.bmp", (char *)"/battery_03.bmp", (char *)"/battery_04.bmp", (char *)"/battery_05.bmp"};
 
 const byte ROWS = 4;
 const byte COLS = 3;
@@ -105,7 +105,7 @@ void SPIFFSInit()
 
 void drawingBatteryIcon(String filePath)
 {
-    fex.drawJpeg(filePath, ICON_POS_X, 0);
+    fex.drawBmp(filePath, ICON_POS_X, 0);
 }
 
 void drawingText(String text)
@@ -164,18 +164,19 @@ void battery_info()
 void onConnectionEstablished()
 {
     client.subscribe("gadgets/" + macAddress + "/settings", [](const String &payload)
-                     {
+    {
         Serial.println("Received Settings");
         DynamicJsonDocument doc(2056);
         deserializeJson(doc, payload);
-        teamROGColor=doc["teamROGColor"];
-        teamSFAColor=doc["teamSFAColor"];
-        captured=doc["captured"];
-        teamROGCode=doc["teamROGCode"].as<String>();
-        teamSFACode=doc["teamSFACode"].as<String>();
-        isCodeGame=doc["isCodeGame"];
-        isEnglish=doc["isEnglish"]; 
-        disabled=doc["disabled"]; });
+        teamROGColor=doc.containsKey("teamROGColor") ? doc["teamROGColor"] : teamROGColor;
+        teamSFAColor=doc.containsKey("teamSFAColor") ? doc["teamSFAColor"] : teamSFAColor;
+        captured=doc.containsKey("captured") ? doc["captured"]: captured;
+        teamROGCode=doc.containsKey("teamROGCode") ? doc["teamROGCode"].as<String>() : teamROGCode;
+        teamSFACode=doc.containsKey("teamSFACode") ? doc["teamSFACode"].as<String>() : teamSFACode;
+        isCodeGame=doc.containsKey("isCodeGame") ? doc["isCodeGame"] : isCodeGame;
+        isEnglish=doc.containsKey("isEnglish") ? doc["isEnglish"] : isEnglish; 
+        disabled=doc.containsKey("disabled") ? doc["disabled"] : disabled; 
+    });
 }
 
 void sendCaptureState(int capturePercentage, int capturer)
@@ -267,8 +268,6 @@ void setup()
     button.setDebounceTime(50);
     changeGame.setDebounceTime(10);
     disableButton.setDebounceTime(10);
-    FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
-    FastLED.setBrightness(25.5);
     xTaskCreatePinnedToCore(
         blinkTaskCode,
         "BlinkTask",
@@ -277,6 +276,7 @@ void setup()
         1,
         &blinkTask,
         0);
+    delay(100);
     vTaskSuspend(blinkTask);
 
     if (isEnglish && isCodeGame)
@@ -306,6 +306,8 @@ void setup()
         tft.drawString("Scan kaart", tftCenterWidth, tftCenterHeight);
     }
     Serial.println("MAC: " + WiFi.macAddress());
+    FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
+    FastLED.setBrightness(25.5);
     FastLED.showColor(CRGB::White);
     Serial.println();
 }
