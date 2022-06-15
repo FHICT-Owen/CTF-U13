@@ -52,6 +52,12 @@ The table below shows a direct comparison of various aspects of all 3 systems pu
   </thead>
   <tbody>
     <tr>
+      <th>Type</th>
+      <td>Message broker</td>
+      <td>Message broker</td>
+      <td>Messaging protocol</td>
+    </tr>
+    <tr>
       <th>LAN Integration</th>
       <td>Yes, dedicated server.</td>
       <td>Yes, dedicated server.</td>
@@ -67,7 +73,7 @@ The table below shows a direct comparison of various aspects of all 3 systems pu
       <th>Performance</th>
       <td>1 million messages per second</td>
       <td>4K-10K messages per second</td>
-      <td>100K messages per second</td>
+      <td>100K messages per second theoretical max</td>
     </tr>
     <tr>
       <th>Message Retention</th>
