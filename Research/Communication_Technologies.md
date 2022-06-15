@@ -17,10 +17,11 @@ Which one of the abovementioned communication protocols would be best suited for
 
 ## Research sub-questions
 1. What is a pub/sub messaging pattern and is it beneficial to choose this over other types of patterns?
-2. Which of the aforementioned protocols can be used in a LAN setup where no further internet connection is needed?
+2. What are the benefits and downsides when comparing the relevant messaging protocols to each other?
+3. Which of the aforementioned protocols can be used in a LAN setup where no further internet connection is needed?
 
 ## Methods
-Now that we have formulated our research question and our sub-questions we can start choosing DOT framework research methods that are suitable for our questions. The ones that seem most suitable are literature study for both questions.
+Now that we have formulated our research question and our sub-questions we can start choosing DOT framework research methods that are suitable for our questions. The ones that seem most suitable are literature study for both questions as there is a lot of documentation available online regarding relevant use-cases, comparisons and limitations.
 
 ## Answers
 ### 1. Pub/Sub messaging pattern
@@ -38,8 +39,65 @@ In conclusion, using a communication protocol that uses the pub/sub messaging pa
 - RabbitMQ
 - Kafka
 
-### 2. LAN setup
-For the abovementioned 3 protocols we're going to need to look into which one would be the easiest to integrate into our application so that it can be used on the local private network we have at the location. MQTT allows for the use of a local broker that can be integrated into the application as a hosted service. For both RabbitMQ and Kafka it would be required to run a seperate application/instance on which the broker or cluster for communication can be run.
+### 2. Protocol comparison
+The table below shows a direct comparison of various aspects of all 3 systems pulled from [simplilearn](https://www.simplilearn.com/kafka-vs-rabbitmq-article).
+<table>
+  <thead>
+    <tr>
+      <th></th>
+      <th>Kafka</th>
+      <th>RabbitMQ</th>
+      <th>MQTT</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>LAN Integration</th>
+      <td>Yes, dedicated server.</td>
+      <td>Yes, dedicated server.</td>
+      <td>Yes, broker can be integrated into application directly.</td>
+    </tr>
+    <tr>
+      <th>Targeted use-case</th>
+      <td>High-ingress data streams with replay capability.</td>
+      <td>General-purpose messaging with support for many protocols.</td>
+      <td>IoT optimized messaging protocol that allows for millions of connections.</td>
+    </tr>
+    <tr>
+      <th>Performance</th>
+      <td>1 million messages per second</td>
+      <td>4K-10K messages per second</td>
+      <td>100K messages per second</td>
+    </tr>
+    <tr>
+      <th>Message Retention</th>
+      <td>Policy-based (e.g., 30 days)</td>
+      <td>Acknowledgment based</td>
+      <td>Acknowledgment based</td>
+    </tr>
+    <tr>
+      <th>Data Type</th>
+      <td>Operational (process operations, auditing and logging statistics, and system activity)</td>
+      <td>Transactional (order formation and placement, and user requests)</td>
+      <td>Transactional (order formation and placement, and user requests)</td>
+    </tr>
+    <tr>
+      <th>Consumer Mode</th>
+      <td>Dumb broker/smart consumer</td>
+      <td>Smart broker/dumb consumer</td>
+      <td>N/A</td>
+    </tr>
+    <tr>
+      <th>Payload Size</th>
+      <td>Default 1MB limit</td>
+      <td>No constraints</td>
+      <td>260MB</td>
+    </tr>
+  </tbody>
+</table>
+
+### 3. LAN setup
+All 3 options can be integrated into a LAN environment, so we're going to take a deeper dive into which one would be the easiest to integrate into our application so that it can be used on the local private network we have at the location. MQTT allows for the use of a local broker that can be integrated into the application as a hosted service. For both RabbitMQ and Kafka it would be required to run a seperate application/instance on which the broker or cluster for communication can be run.
 
 ## Conclusion
 MQTT, RabbitMQ and Kafka are all excellent choices for Pub/Sub messaging protocols, but in terms of convenience MQTT is the winner. It allows for easy integration with the main application and ticks all the boxes in terms of required features.
