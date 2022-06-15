@@ -175,7 +175,8 @@ void onConnectionEstablished()
         teamSFACode=doc.containsKey("teamSFACode") ? doc["teamSFACode"].as<String>() : teamSFACode;
         isCodeGame=doc.containsKey("isCodeGame") ? doc["isCodeGame"] : isCodeGame;
         isEnglish=doc.containsKey("isEnglish") ? doc["isEnglish"] : isEnglish; 
-        disabled=doc.containsKey("disabled") ? doc["disabled"] : disabled; 
+        disabled=doc.containsKey("disabled") ? doc["disabled"] : disabled;
+        reset(false);
     });
 }
 
