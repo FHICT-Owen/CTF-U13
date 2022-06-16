@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace MissionSystem.Interface.Models
 {
+    [NotMapped]
     public class Match
     {   
          /// <summary>
@@ -32,6 +33,9 @@ namespace MissionSystem.Interface.Models
 
         [NotMapped]
         public IBaseGame BaseGame { get; set; }
+        
+        // TODO: This should probably be in a JSON game-specific configuration field
+        public bool IsCodeGame { get; set; }
 
 
     }

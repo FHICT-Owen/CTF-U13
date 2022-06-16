@@ -1,4 +1,5 @@
 @page "/"
+@page "/view/{viewtype}"
 @using MissionSystem.Interface.Models
 @using MissionSystem.Main.Gadgets
 @using MissionSystem.Interface
@@ -18,7 +19,6 @@
 @inject IGameService _game
 @inject ILogger<Index> _logger
 @inject IArenaService _arena
-@inject IMatchService _match
 
 <PageTitle>CTF Demo</PageTitle>
 
@@ -37,36 +37,45 @@
             }
     }
 
-    <button id="settings" class="settings" @onclick='() => Settings()'>
-        <i class="bi bi-gear-fill"></i>
-    </button>
+    @{
+        if (viewtype == null)
+        {
+            <button id="settings" class="settings" @onclick='() => Settings()'>
+                <i class="bi bi-gear-fill"></i>
+        </button>
+    }
+    }
 </div>
 
 <div class="timer-bar">
     @{
-        if (!_started)
+        if (viewtype == null) { if (!_started)
         {
             <button class="btn btn-outline-success" @onclick="@StartMatch">Start</button>
         }
         else
         {
             <button class="btn btn-outline-danger" @onclick="@StopMatch">Stop</button>
-        }
+        } }
+        
     }
     <div class="timer">
         <span>@(_timer?.ToString() ?? "No current game")</span>
     </div>
-    <button class="btn btn-outline-warning" @onclick="@ResetMatch">Reset</button>
+    @if (viewtype == null)
+    {
+        <button class="btn btn-outline-warning" @onclick="@ResetMatch">Reset</button>
+    }
 </div>
 
 @{
-    if (activeArena == null || activeArena.Game == null)
+    if (activeArena == null || currentGame == null)
     {
         <h1 style="">No current game</h1>
     }
     else
     {
-        <div class="demo">
+        <div class="demo" style=@GetColumnAmount()>
             <div class="score">
                 <h2>Team Green</h2>
                 <span>@(team1Score | 0)</span>
@@ -109,13 +118,16 @@
                                 top: 0;
 " @onclick="() => settings = false">
         </div>
-        <div style="width: 50vw; height: 50vh; position: absolute; left: 25%; top: 25%; opacity: 1.0; background-color: white">
+        <div class="matchcreation">
             <MatchCreationForm OnMatchCreate="@CreateMatch" />
         </div>
     }
 }
 
 @code {
+    [Parameter]
+    public string viewtype { get; set; }
+
     private Dictionary<string, FlagState> FlagStates = new();
 
     private bool _started = false;
@@ -124,7 +136,7 @@
 
     private Arena activeArena;
 
-    private IBaseGame ctf;
+    private IBaseGame currentGame;
     private ITimer? _timer;
 
     private bool redirectToArena = false;
@@ -147,7 +159,7 @@
         Arenas = await _arena.GetArenasAsync();
         _arena.Added += Add;
         _arena.Deleted += Delete;
-        _match.Added += Add;
+        _game.Added += Add;
 
         if (Arenas.Count < 1)
         {
@@ -157,15 +169,14 @@
         activeArena = Arenas[0];
 
         if (activeArena.Game == null) return;
-        ctf = activeArena.Game.BaseGame;
 
-        if (ctf == null) activeArena.Game.BaseGame = _game.GetGame(activeArena.Game.GameTypeName, activeArena);
-        ctf = activeArena.Game.BaseGame;
+        if (activeArena.Game.BaseGame == null) activeArena.Game.BaseGame = _game.GetBaseGame(activeArena.Game);
+        currentGame = activeArena.Game.BaseGame;
 
-        // ctf = _game.GetGame("CTF", activeArena);
-        ctf.updateHandler += Update;
+        // currentGame = _game.GetGame("CTF", activeArena);
+        currentGame.updateHandler += Update;
 
-        _timer = ctf.GetTimer();
+        _timer = currentGame.GetTimer();
 
         _timer.Update += OnTick;
 
@@ -180,34 +191,46 @@
 
     private void GetAddresses(Gadget g = null)
     {
-        string data = ctf.GetData();
+        if (currentGame == null) return;
+        string data = currentGame.GetData();
         Addresses = JsonConvert.DeserializeObject<List<string>>(data);
         InvokeAsync(StateHasChanged);
     }
 
-    private void SetArena(Arena arena)
+    private async Task SetArena(Arena arena)
     {
-        activeArena = arena;
+        int id = arena.Id;
 
-        if (arena.Game == null)
+        await GetArenas();
+
+        if (_timer != null)
         {
             _timer.Update -= OnTick;
             _timer = null;
+        }
+
+        activeArena = Arenas.First(a => a.Id == id);
+
+
+        if (currentGame != null) currentGame.updateHandler -= Update;
+
+        if (activeArena.Game== null) {
+            currentGame = null;
             return;
         }
 
-        ctf.updateHandler -= Update;
-
-        ctf = _game.GetGame("CTF", activeArena);
-        ctf.updateHandler += Update;
+        currentGame = activeArena.Game.BaseGame;
+        currentGame.updateHandler += Update;
 
         if (_timer != null) _timer.Update -= OnTick;
-        _timer = ctf.GetTimer();
+        _timer = currentGame.GetTimer();
         _timer.Update += OnTick;
 
         _started = _timer.IsRunning;
 
         GetAddresses();
+
+        InvokeAsync(StateHasChanged);
 
     }
 
@@ -274,6 +297,8 @@
 
     private void StartMatch()
     {
+        if (_timer == null) return;
+
         _started = true;
 
         _timer.StartTimer();
@@ -286,15 +311,15 @@
 
     private async Task CreateMatch(Match match)
     {
-        Console.WriteLine("test");
-        await _match.DeleteMatchAsync(activeArena.Game);
-        await _match.CreateMatchAsync(match);
+        _game.DeleteMatchesByArenaAsync(match.Arena);
+        await _game.CreateMatchAsync(match);
         settings = false;
         int arenaId = match.Arena.Id;
 
+        await _arena.UpdateArenaAsync(match.Arena);
         Arenas = await _arena.GetArenasAsync();
-        activeArena = Arenas.First(a => a.Id == arenaId);
-        InvokeAsync(StateHasChanged);
+
+        SetArena(match.Arena);
     }
 
     private void Add(Arena a)
@@ -319,12 +344,12 @@
         if (activeArena.Id == m.Arena.Id)
         {
             activeArena.Game = m;
-        ctf.updateHandler -= Update;
+            currentGame.updateHandler -= Update;
 
-            ctf = m.BaseGame ?? _game.GetGame(m.GameTypeName, activeArena);
-        ctf.updateHandler += Update;
+            currentGame = m.BaseGame ?? _game.GetBaseGame(m);
+            currentGame.updateHandler += Update;
 
-            _timer = ctf.GetTimer();
+            _timer = currentGame.GetTimer();
         }
         InvokeAsync(() =>
         {
@@ -347,6 +372,8 @@
 
     private void StopMatch()
     {
+        if (_timer == null) return;
+
         _started = false;
 
         _timer.StopTimer();
@@ -354,9 +381,11 @@
 
     private void ResetMatch()
     {
+        if (_timer == null) return;
+
         _started = false;
         _timer.ResetTimer();
-        ctf.ResetGame();
+        currentGame.ResetGame();
     }
 
     private void Settings()
@@ -406,6 +435,17 @@
     //        _logger.LogError("Could not parse flag state");
     //    }
     //}
+
+    private string GetColumnAmount()
+    {
+        string s = "grid-template-columns: 1fr";
+        for (int i = 0; i <= Addresses.Count; i++)
+        {
+            s += " 1fr";
+
+        }
+        return s;
+    }
 
     public void Dispose()
     {

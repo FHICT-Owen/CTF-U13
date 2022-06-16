@@ -88,11 +88,28 @@ a, .btn-link {
 
 .demo {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
     grid-template-rows: 1fr;
     
 }
 
+.matchcreation {
+    width: 80vw;
+    height: 80vh;
+    position: absolute;
+    left: 10vw;
+    top: 10vh;
+    opacity: 1.0;
+    background-color: white;
+    padding: 20px;
+    border-radius: 20px;
+    overflow-y: scroll;
+    -ms-overflow-style: none; /* for Internet Explorer, Edge */
+    scrollbar-width: none; /* for Firefox */
+}
+
+.matchcreation::-webkit-scrollbar {
+    display: none; /* for Chrome, Safari, and Opera */
+}
     
 .flag-icon {
     width: 10vw;
@@ -105,9 +122,11 @@ a, .btn-link {
 }
 
 .status .progress {
-    width: 100%;
+    width: 90%;
+
     margin-top: 20px;
     margin-bottom: 20px;
+    margin-left: 5%;
 }
 
 .timer-bar {

@@ -8,10 +8,31 @@ namespace MissionSystem.Main.Arenas;
 
 public class ArenaService : SubscribableResource<Arena>, IArenaService
 {
+    private IGameService GameService;
+
+    public ArenaService(IGameService gameService)
+    {
+        GameService = gameService;
+    }
+
     public async Task<List<Arena>> GetArenasAsync()
     {
         await using var db = new DataStore();
-        return await db.Arenas.ToListAsync();
+
+        List<Arena> arenas = await db.Arenas.ToListAsync();
+
+        List<Arena> arenasCopy = new List<Arena>();
+
+        foreach (var arena in arenas)
+        {
+            Arena a = arena;
+            Match match = await GameService.FindMatchById(arena.Id);
+
+            a.Game = match;
+            arenasCopy.Add(a);
+        }
+
+        return arenas;
     }
 
 
@@ -19,6 +40,10 @@ public class ArenaService : SubscribableResource<Arena>, IArenaService
     {
         await using var db = new DataStore();
         var arena = await db.Arenas.FindAsync(id);
+
+        Match match = await GameService.FindMatchById(id);
+
+        arena.Game = match;
 
         return arena;
     }

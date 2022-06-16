@@ -1,4 +1,5 @@
-﻿using System.Net.NetworkInformation;
+﻿using System.Drawing;
+using System.Net.NetworkInformation;
 
 namespace MissionSystem.Util;
 
@@ -30,4 +31,6 @@ public static class FormatUtils
             _ => (int) (ts.TotalDays / 365.242) == 1 ? "1 year ago" : (int) (ts.TotalDays / 365.242) + " years ago"
         };
     }
+    
+    public static string ToHexString(this Color c) => $"#{c.R:X2}{c.G:X2}{c.B:X2}";
 }

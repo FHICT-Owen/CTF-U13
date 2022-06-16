@@ -46,8 +46,8 @@ public class LightingControllerClient : ILightingController, IDisposable
 
     public async Task PressButton(string name, CancellationToken token)
     {
-        await SendMessageAsync(MessageType.ButtonPress, token, name);
         await SendMessageAsync(MessageType.ButtonRelease, token, name);
+        await SendMessageAsync(MessageType.ButtonPress, token, name);
     }
 
     public Task UpdateBpm(int bpm) => UpdateBpm(bpm, CancellationToken.None);

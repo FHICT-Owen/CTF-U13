@@ -11,6 +11,7 @@ public abstract class BaseGame : IBaseGame
     protected IGadgetStateService gadgetStateService;
     protected IGadgetSettingsService gadgetSettingsService;
     protected IGadgetService gadgetService;
+    protected IEffectsService effectsService;
 
     public abstract event EventHandler<string>? updateHandler;
     public abstract event EventHandler<string>? init;
@@ -33,6 +34,7 @@ public abstract class BaseGame : IBaseGame
         gadgetStateService = provider.GetService<IGadgetStateService>();
         gadgetSettingsService = provider.GetService<IGadgetSettingsService>();
         gadgetService = provider.GetService<IGadgetService>();
+        effectsService = provider.GetService<IEffectsService>();
 
         Arena = arena;
         Match = arena.Game;
@@ -44,7 +46,7 @@ public abstract class BaseGame : IBaseGame
 
     public abstract void ResetGame();
 
-    protected void CreateTimer(int duration)
+    public void CreateTimer(int duration)
     {
         timer = gameTimerService.CreateTimer(duration);
     }
@@ -56,7 +58,7 @@ public abstract class BaseGame : IBaseGame
 
     async protected Task GetGadgets()
     {
-        Gadgets = await gadgetService.GetGadgetsByMatch(Match);
+        Gadgets = Match?.Gadgets.ToList();
     }
 
     public ITimer ResetTimer()

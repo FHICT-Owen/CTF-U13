@@ -22,7 +22,6 @@ public class CTFLogic : BaseGame
 
     public async override Task Setup()
     {
-        CreateTimer(Match.Duration);
         timer.Update += Update;
 
         await GetGadgets();
@@ -61,18 +60,17 @@ public class CTFLogic : BaseGame
                 updateHandler?.Invoke(this, JsonConvert.SerializeObject(d));
             });
 
-            gadgetSettingsService.SetSettings(PhysicalAddress.Parse(address), new Dictionary<string, object>()
+            await gadgetSettingsService.SetSettings(gadget.MacAddress, new Dictionary<string, object>()
             {
-                {"teamROGColor", 0xFF0000},
-                {"teamSFAColor", 0x00FF00},
                 {"captured", false},
-                {"teamROGCode", "1111"},
-                {"teamSFACode", "7777"},
-                {"isCodeGame", false},
-                {"isEnglish", false},
+                {"teamROGCode", Match.IsCodeGame ? "1111" : "3A FD 90 15"},
+                {"teamSFACode", Match.IsCodeGame ? "7777" : "2A 01 FF B2"},
+                {"isCodeGame", Match.IsCodeGame},
+                {"isEnglish", Match.IsEnglish},
+                {"disabled", false},
             });
 
-
+            await gadgetSettingsService.UpdateSettings(gadget.MacAddress);
         }
 
         // score multiplier?
@@ -127,6 +125,15 @@ public class CTFLogic : BaseGame
         // score.GetAll()
     }
 
+    private async void OnGameEnd()
+    {
+        foreach (var gadget in Gadgets)
+        {
+            await gadgetSettingsService.SetSetting(gadget.MacAddress, "disabled", true);
+            await gadgetSettingsService.UpdateSettings(gadget.MacAddress);
+        }
+    }
+
     private async void Update(object? sender, EventArgs args)
     {
         foreach (FlagState state in FlagStates.Values)
@@ -136,6 +143,12 @@ public class CTFLogic : BaseGame
         }
 
         if (timer.TimeRemaining == 60) ; // run 1 minute left event
+
+        // Game ended
+        if (timer.TimeRemaining == 0)
+        {
+            OnGameEnd();
+        }
 
         //score.Add(iotService.devices["flag1"], "capturedBy");
         //score.Add(iotService.devices["flag2"], "capturedBy");
