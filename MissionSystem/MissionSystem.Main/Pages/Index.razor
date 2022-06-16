@@ -108,7 +108,7 @@
                                 top: 0;
 " @onclick="() => settings = false">
         </div>
-        <div style="width: 50vw; height: 50vh; position: absolute; left: 25%; top: 25%; opacity: 1.0; background-color: white">
+        <div style="width: 50vw; position: absolute; left: 25%; top: 25%; opacity: 1.0; background-color: white">
             <MatchCreationForm OnMatchCreate="@CreateMatch" />
         </div>
     }
@@ -296,7 +296,6 @@
 
     private async Task CreateMatch(Match match)
     {
-        Console.WriteLine("test");
         _game.DeleteMatchesByArenaAsync(match.Arena);
         await _game.CreateMatchAsync(match);
         settings = false;
