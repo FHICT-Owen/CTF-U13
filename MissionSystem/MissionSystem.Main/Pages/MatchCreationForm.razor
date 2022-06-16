@@ -40,12 +40,9 @@
 
     <div class="mb-3">
         <label for="durationInput" class="form-label">Match Duration</label>
-        <InputSelect required id="durationInput" class="form-select" @bind-Value="_match.Duration">
-            <option disabled value="0">Select&hellip;</option>
-            <option value="5">10 Minutes</option>
-            <option value="15">15 Minutes</option>
-            <option value="20">20 Minutes</option>
-        </InputSelect>
+        <MudSlider required id="durationInput"  @bind-Value="_match.Duration"  TickMarks="true" Min="5" Max="40" TickMarkLabels="@labels" Step="5"/>
+                 
+        
     </div>
 
     <div class="mb-3">
@@ -82,6 +79,8 @@
 
 @code {
 
+    string[] labels = new string[] {"5", "10", "15", "20", "25", "30", "35", "40"};
+    
     [Parameter]
     public EventCallback<Match> OnMatchCreate { get; set; }
 

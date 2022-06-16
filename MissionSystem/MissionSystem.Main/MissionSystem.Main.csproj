@@ -34,4 +34,8 @@
     <ProjectReference Include="..\TheLightingController.Lib\TheLightingController.Lib.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Remove="Pages\FrontEnd.razor" />
+  </ItemGroup>
+
 </Project>

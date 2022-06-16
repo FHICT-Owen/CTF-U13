@@ -4,11 +4,28 @@
 @using MissionSystem.Interface.Timer
 @using MissionSystem.Interface
 @using Newtonsoft.Json.Linq
-@implements IDisposable
 @inject IGadgetStateService _gadgets
 
 @inject IGameService _game
 @inject ILogger<Index> _logger
+
+
+@using MissionSystem.Interface.Models
+@using MissionSystem.Main.Gadgets
+@using MissionSystem.Interface
+@using MissionSystem.Interface.Services
+@using MissionSystem.Interface.Timer
+
+@using MissionSystem.Main.Pages.Gadgets
+
+@using Newtonsoft.Json
+@using Newtonsoft.Json.Linq
+@using System.Net.NetworkInformation
+
+@inject IGadgetStateService _gadgetState
+@inject IGadgetService _gadget
+
+@inject IArenaService _arena
 
 <PageTitle>CTF Demo</PageTitle>
 
@@ -20,46 +37,78 @@
 </style>
 
 
-<div class = "test1">
-    <div class="test2">
-        <div> <h3>Game Length: </h3></div>
-        <div> <h3>@value</h3></div>
+
+<MenuPop/>
+
+<div class="mainPage">
+    
+    <div style="position: relative;top: 10%">
+        <MudText> No ongoing matches found</MudText>
+        <MudPaper Style="position: relative; left: 0" Height="300px" Width="80%">
+            <MudContainer MaxWidth="MaxWidth.Small">
+                <MudPaper Height="400px" Width="80%" Square="true" Class="mud-theme-primary"></MudPaper>
+                
+                <MudButton > press me </MudButton>
+            </MudContainer>
+        </MudPaper>
     </div>
-    <div  class="test3">
-        <MudSlider @bind-Value="value" TickMarks="true" Min="5" Max="40" TickMarkLabels="@labels" Step="5" />
-    </div>
-    <div class ="test4">
-        <div> <h3>Selected Arena: @SelectedOption</h3></div>
-        <div>
-            <MudRadioGroup @bind-SelectedOption="@SelectedOption">
-                <MudRadio Option="@("Arena 1")" Color="Color.Primary">Arena 1</MudRadio>
-                <MudRadio Option="@("Arena 2")" Color="Color.Primary">Arena 2</MudRadio>
-                <MudRadio Option="@("Arena 1+2")" Color="Color.Primary">Arena 1+2</MudRadio>
-                <MudRadio Option="@("Custom")" Color="Color.Primary" Disabled="true">Custom</MudRadio>
-            </MudRadioGroup>
-        </div>
-    </div>
-        <div class="test3">   
-        <MudSelect T="string" Label="Select Gadgets" MultiSelection="true" @bind-Value="gadgetValue" @bind-SelectedValues="options">
-        @foreach (var gadget in gadgetList)
-        {
-            <MudSelectItem T="string" Value="@gadget">@gadget</MudSelectItem>
-        }
-        </MudSelect>
-        </div>
-    <div class="test2">
-        <div>
-            <div><h3>Arena 1</h3></div>
-            <div class="test1">
-                <MudCheckBox @bind-Checked="@Label_CheckBox1" Color="Color.Primary" Label="Flag A1"></MudCheckBox>
-                <MudCheckBox @bind-Checked="@Label_CheckBox2" Color="Color.Primary" Label="Flag A2"></MudCheckBox>
-                <MudCheckBox @bind-Checked="@Label_CheckBox3" Color="Color.Primary" Label="Flag A3"></MudCheckBox>
-            </div>
-        </div>
-        <div class="test5"> <MudButton Variant="Variant.Filled" Size="Size.Large">START</MudButton></div>
-        <div><h5>@gadgetValue</h5></div>
-    </div>
-</div>
+    
+    @code
+    {
+        //foreach created active match create component to view
+    }
+    
+    <div class="test1">
+         <div style="width: 50vw;height: 25vw;top: 25%; position: relative;margin-left: 25vw;margin-right: 25vw">
+                      <MatchCreationForm OnMatchCreate="@CreateMatch"/>
+                  </div>
+     </div>
+         
+
+         <div class="test2">
+             <div>
+                 <h3>Game Length: </h3></div>
+             <div>
+                 <h3>@value</h3></div>
+         </div>
+         <div class="test3">
+             <MudSlider @bind-Value="value" TickMarks="true" Min="5" Max="40" TickMarkLabels="@labels" Step="5"/>
+         </div>
+         <div class="test4">
+             <div>
+                 <h3>Selected Arena: @SelectedOption</h3></div>
+             <div>
+                 <MudRadioGroup @bind-SelectedOption="@SelectedOption">
+                     <MudRadio Option="@("Arena 1")" Color="Color.Primary">Arena 1</MudRadio>
+                     <MudRadio Option="@("Arena 2")" Color="Color.Primary">Arena 2</MudRadio>
+                     <MudRadio Option="@("Arena 1+2")" Color="Color.Primary">Arena 1+2</MudRadio>
+                     <MudRadio Option="@("Custom")" Color="Color.Primary" Disabled="true">Custom</MudRadio>
+                 </MudRadioGroup>
+             </div>
+         </div>
+         <div class="test3">
+             <MudSelect T="string" Label="Select Gadgets" MultiSelection="true" @bind-Value="gadgetValue" @bind-SelectedValues="options">
+                 @foreach (var gadget in gadgetList)
+                 {
+                     <MudSelectItem T="string" Value="@gadget">@gadget</MudSelectItem>
+                 }
+             </MudSelect>
+         </div>
+         <div class="test2">
+             <div>
+                 <div>
+                     <h3>Arena 1</h3></div>
+                 <div class="test1">
+                     <MudCheckBox @bind-Checked="@Label_CheckBox1" Color="Color.Primary" Label="Flag A1"></MudCheckBox>
+                     <MudCheckBox @bind-Checked="@Label_CheckBox2" Color="Color.Primary" Label="Flag A2"></MudCheckBox>
+                     <MudCheckBox @bind-Checked="@Label_CheckBox3" Color="Color.Primary" Label="Flag A3"></MudCheckBox>
+                 </div>
+             </div>
+             <div class="test5"> <MudButton Variant="Variant.Filled" Size="Size.Large">START</MudButton></div>
+             <div><h5>@gadgetValue</h5></div>
+         </div>
+     </div>
+
 
 
 
@@ -97,10 +146,53 @@
     
 </div>
 
+<MudGrid Justify="Justify.Center">
+    
+    
+     <MudItem xs="3" sm="2">
+            <MudPaper Class="d-flex align-center justify-center mud-width-full py-8">left flag team</MudPaper>
+        </MudItem>
+    <MudItem xs="8" sm="8">
+        <MudPaper Height="200px" Class="d-flex align-center justify-center mud-width-full py-8">center item</MudPaper>
+    </MudItem>
+    <MudItem xs="3" sm="2">
+        <MudPaper Height="200px" Class="d-flex align-center justify-center mud-width-full py-8">right flag team </MudPaper>
+    </MudItem>
+     <MudItem xs="8" sm="8">
+                        <MudPaper Height="200px" Class="d-flex align-center justify-center mud-width-full py-8">center item</MudPaper>
+                    </MudItem>
+   
+</MudGrid>
 
 
-
-
+<MudPaper Width="300px" Height="500px">
+    <MudList Clickable="false">
+        <MudListItem  Text="Inbox" Icon="@Icons.Material.Filled.Inbox" />
+        <MudListItem Text="Sent" Icon="@Icons.Material.Filled.Send" />
+        <MudDivider />
+        <MudListItem Style="height: 100px; width: 300px" Text="Trash" />
+        <MudListItem Style="height: 300px; width: 300px" Text="Spam" />
+         <MudListItem Style="height: 50px; width: 300px" Text="nomoreSpam" />
+        @{
+                foreach (string address in Addresses)
+                {
+                    @if (!FlagStates.ContainsKey(address)) FlagStates[address] = new FlagState();
+        
+                    <div id=@address>
+                        @*<span class="oi oi-flag flag" />*@
+                        <MudListItem class="flag" style=" width: 50%; height: 30vh"  />
+                        <div >
+        
+                            <i class="bi bi-flag-fill" style="font-size: 150px;  left: 25%; color: @FlagStates[address].BackgroundColor"></i>
+                            <i class="bi bi-flag" style="font-size: 150px; left: 25%"></i>
+                        </div>
+                        <span>@FlagStates[address].CapturedBy</span>
+                        <ProgressBar Progress="@FlagStates[address].CapturePercentage" ForegroundColor="@FlagStates[address].ForegroundColor" BackgroundColor="@FlagStates[address].BackgroundColor"></ProgressBar>
+                    </div>
+                }
+            }
+    </MudList>
+</MudPaper>
 
 
 
@@ -173,52 +265,129 @@
     private string gadgetValue { get; set; } = "Nothing selected";
     private IEnumerable<string> options { get; set; } = new HashSet<string>() { "Alaska" };
     
-    private string _capturedBy = "0";
-    private long _capturePercentage;
+    private Dictionary<string, FlagState> FlagStates = new();
+
     private bool _started = false;
+
+    private bool settings = false;
+
+    private Arena activeArena;
 
     private IBaseGame ctf;
     private ITimer? _timer;
 
-    private string team1Score;
-    private string team2Score;
+    private int team1Score;
+    private int team2Score;
 
     private IDisposable? _subscription;
 
-    private string _backgroundColor = "#8D99AE";
-    private string _foregroundColor = "#342E37";
+    private List<string> Addresses = new();
 
-    protected override void OnInitialized()
+    private List<Arena> Arenas = new();
+
+    
+    //add a list of checkboxes corresponding with number of renas
+    public List<bool> SelectedArena = new();
+
+    protected async override Task OnInitializedAsync()
     {
-        // _subscription = _gadgets.StateUpdatesOf(PhysicalAddress.Parse("44:17:93:87:D3:DC"), OnFlagUpdate);
+        _gadget.Added += GetAddresses;
+        _gadget.Deleted += GetAddresses;
 
-        ctf = _game.GetGame("CTF");
-        ctf.data += Update;
+        // _subscription = _gadgets.StateUpdatesOf(PhysicalAddress.Parse("44:17:93:87:D3:DC"), OnFlagUpdate);
+        Arenas = await _arena.GetArenasAsync();
+        _arena.Added += Add;
+        _arena.Deleted += Delete;
+
+        activeArena = Arenas[0];
+
+        ctf = _game.GetGame("CTF", activeArena);
+        ctf.updateHandler += Update;
+
+        _timer = ctf.GetTimer();
+
+        _timer.Update += OnTick;
+
+        GetAddresses(new Gadget());
+
+    }
+
+    private void GetAddresses(Gadget g)
+    {
+
+        string data = ctf.GetData();
+        Addresses = JsonConvert.DeserializeObject<List<string>>(data);
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void SetArena(Arena arena)
+    {
+        activeArena = arena;
+
+        ctf = _game.GetGame("CTF", activeArena);
+        ctf.updateHandler += Update;
 
         _timer = ctf.GetTimer();
         _timer.Update += OnTick;
+
+        _started = _timer.IsRunning;
+
     }
 
-    private void Update(object? sender, string data) {
+    private struct UpdateData {
+        public int Team1Score;
+        public int Team2Score;
+        public Dictionary<string, FlagState>? FlagStates;
+    };
+
+    private struct FlagState
+    {
+        public long CapturePercentage = 0;
+        public long Capturer = 0;
+        public long? CapturedBy = 0;
+        public string? Address = "";
+        public string? BackgroundColor = "#8D99AE";
+        public string? ForegroundColor = "";
+        public FlagState() { }
+    };
+
+    private void Update(object? sender, string data)
+    {
         if (string.IsNullOrEmpty(data)) return;
 
-        JObject obj = JObject.Parse(data);
-        
-        team1Score = obj["Team1Score"].ToString();
-        team2Score = obj["Team2Score"].ToString();
-        string percentage = obj["FlagState"]["CapturePercentage"].ToString();
-        string capturer = obj["FlagState"]["Capturer"].ToString();
-        if (capturer == "1") _foregroundColor = "#00FF00";
-        if (capturer == "2") _foregroundColor = "#FF0000";
-        if (capturer == "0") _foregroundColor = "#342E37";
+        UpdateData d = JsonConvert.DeserializeObject<UpdateData>(data);
 
-        _capturePercentage = long.Parse(percentage);
-        if (_capturePercentage == 100)
+        team1Score = d.Team1Score;
+        team2Score = d.Team2Score;
+
+        foreach (KeyValuePair<string, FlagState> kvPair in d.FlagStates)
         {
-            _capturedBy = capturer;
-            if (capturer == "1") _backgroundColor = "#00FF00";
-            if (capturer == "2") _backgroundColor = "#FF0000";
+            FlagState f = kvPair.Value;
+            string address = kvPair.Value.Address;
+
+            switch (f.Capturer) {
+                case 0:
+                    f.ForegroundColor = "#342e37";
+                    break;
+                case 1:
+                    f.ForegroundColor = "#00ff00";
+                    break;
+                case 2:
+                    f.ForegroundColor = "#ff0000";
+                    break;
+
+            }
+            if (f.CapturePercentage == 100)
+            {
+                f.CapturedBy = f.Capturer;
+                if (f.Capturer == 1) f.BackgroundColor = "#00FF00";
+                if (f.Capturer == 2) f.BackgroundColor = "#FF0000";
+            }
+
+            FlagStates[kvPair.Key] = f;
         }
+
+        _started = _timer.IsRunning;
 
         InvokeAsync(StateHasChanged);
 
@@ -233,20 +402,55 @@
 
     private void OnTick(object? sender, EventArgs e)
     {
-        if (!_started) _started = true;
-
         InvokeAsync(StateHasChanged);
+    }
+
+    private void CreateMatch(Match match)
+    {
+
+    }
+
+    private void Add(Arena a)
+    {
+        InvokeAsync(() =>
+        {
+            Arenas.Add(a);
+            StateHasChanged();
+        });
+
+        foreach (Arena arena in Arenas)
+        {
+            Console.WriteLine(arena.Name);
+        }
+    }
+
+    private void Delete(Arena a)
+    {
+        InvokeAsync(() =>
+        {
+            Arenas.RemoveAll(arena => a.Id == arena.Id);
+
+            StateHasChanged();
+        });
     }
 
     private void StopMatch()
     {
         _started = false;
+
         _timer.StopTimer();
     }
 
-    private void ResetMatch() {
+    private void ResetMatch()
+    {
         _started = false;
         _timer.ResetTimer();
+
+    }
+
+    private void Settings()
+    {
+        settings = true;
     }
 
     //private void OnFlagUpdate(Dictionary<string, object> state)
@@ -294,7 +498,10 @@
 
     public void Dispose()
     {
+        _arena.Deleted -= Delete;
+        _arena.Added -= Add;
         _subscription?.Dispose();
     }
+
 
 }

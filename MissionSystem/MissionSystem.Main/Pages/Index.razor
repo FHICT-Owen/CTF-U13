@@ -21,11 +21,12 @@
 
 <PageTitle>CTF Demo</PageTitle>
 
+<MenuPop></MenuPop>
+<!--    creates buttons for each existing arena!-->
 <div class="arena-bar">
     @{
         foreach (Arena a in Arenas)
         {
-
             <button id="a.Name" class=@(a == activeArena ? "nav active" : "nav") @onclick='() => SetArena(a)'>
                 @a.Name
             </button>
@@ -74,8 +75,6 @@
                 <ProgressBar Progress="@FlagStates[address].CapturePercentage" ForegroundColor="@FlagStates[address].ForegroundColor" BackgroundColor="@FlagStates[address].BackgroundColor"></ProgressBar>
             </div>
         }
-
-        
     }
     <div class="score">
         <h2>Team Red</h2>
@@ -155,7 +154,6 @@
     private void SetArena(Arena arena)
     {
         activeArena = arena;
-
 
         ctf = _game.GetGame("CTF", activeArena);
         ctf.updateHandler += Update;
