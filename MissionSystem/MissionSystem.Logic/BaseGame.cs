@@ -11,6 +11,7 @@ public abstract class BaseGame : IBaseGame
     protected IGadgetStateService gadgetStateService;
     protected IGadgetSettingsService gadgetSettingsService;
     protected IGadgetService gadgetService;
+    protected IEffectsService effectsService;
 
     public abstract event EventHandler<string>? updateHandler;
     public abstract event EventHandler<string>? init;
@@ -33,6 +34,7 @@ public abstract class BaseGame : IBaseGame
         gadgetStateService = provider.GetService<IGadgetStateService>();
         gadgetSettingsService = provider.GetService<IGadgetSettingsService>();
         gadgetService = provider.GetService<IGadgetService>();
+        effectsService = provider.GetService<IEffectsService>();
 
         Arena = arena;
         Match = arena.Game;
