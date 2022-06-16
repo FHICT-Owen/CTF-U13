@@ -1,4 +1,5 @@
 @page "/"
+@page "/view/{viewtype}"
 @using MissionSystem.Interface.Models
 @using MissionSystem.Main.Gadgets
 @using MissionSystem.Interface
@@ -36,26 +37,35 @@
             }
     }
 
-    <button id="settings" class="settings" @onclick='() => Settings()'>
-        <i class="bi bi-gear-fill"></i>
-    </button>
+    @{
+        if (viewtype == null)
+        {
+            <button id="settings" class="settings" @onclick='() => Settings()'>
+                <i class="bi bi-gear-fill"></i>
+        </button>
+    }
+    }
 </div>
 
 <div class="timer-bar">
     @{
-        if (!_started)
+        if (viewtype == null) { if (!_started)
         {
             <button class="btn btn-outline-success" @onclick="@StartMatch">Start</button>
         }
         else
         {
             <button class="btn btn-outline-danger" @onclick="@StopMatch">Stop</button>
-        }
+        } }
+        
     }
     <div class="timer">
         <span>@(_timer?.ToString() ?? "No current game")</span>
     </div>
-    <button class="btn btn-outline-warning" @onclick="@ResetMatch">Reset</button>
+    @if (viewtype == null)
+    {
+        <button class="btn btn-outline-warning" @onclick="@ResetMatch">Reset</button>
+    }
 </div>
 
 @{
@@ -65,7 +75,7 @@
     }
     else
     {
-        <div class="demo">
+        <div class="demo" style=@GetColumnAmount()>
             <div class="score">
                 <h2>Team Green</h2>
                 <span>@(team1Score | 0)</span>
@@ -115,6 +125,9 @@
 }
 
 @code {
+    [Parameter]
+    public string viewtype { get; set; }
+
     private Dictionary<string, FlagState> FlagStates = new();
 
     private bool _started = false;
@@ -216,6 +229,8 @@
         _started = _timer.IsRunning;
 
         GetAddresses();
+
+        InvokeAsync(StateHasChanged);
 
     }
 
@@ -329,10 +344,10 @@
         if (activeArena.Id == m.Arena.Id)
         {
             activeArena.Game = m;
-        currentGame.updateHandler -= Update;
+            currentGame.updateHandler -= Update;
 
             currentGame = m.BaseGame ?? _game.GetBaseGame(m);
-        currentGame.updateHandler += Update;
+            currentGame.updateHandler += Update;
 
             _timer = currentGame.GetTimer();
         }
@@ -420,6 +435,17 @@
     //        _logger.LogError("Could not parse flag state");
     //    }
     //}
+
+    private string GetColumnAmount()
+    {
+        string s = "grid-template-columns: 1fr";
+        for (int i = 0; i <= Addresses.Count; i++)
+        {
+            s += " 1fr";
+
+        }
+        return s;
+    }
 
     public void Dispose()
     {

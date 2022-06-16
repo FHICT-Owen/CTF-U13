@@ -88,7 +88,6 @@ a, .btn-link {
 
 .demo {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
     grid-template-rows: 1fr;
     
 }
@@ -123,9 +122,11 @@ a, .btn-link {
 }
 
 .status .progress {
-    width: 100%;
+    width: 90%;
+
     margin-top: 20px;
     margin-bottom: 20px;
+    margin-left: 5%;
 }
 
 .timer-bar {
