@@ -1,4 +1,4 @@
-name: Mission System
+name: The Lighting Controller Lib
 
 on: [push]
 
@@ -21,6 +21,6 @@ jobs:
       - name: Install dependencies
         run: dotnet restore MissionSystem
       - name: Build
-        run: dotnet build --configuration Release --no-restore MissionSystem/MissionSystem.Main
+        run: dotnet build --configuration Release --no-restore MissionSystem/TheLightingController.Lib
       - name: Test
-        run: dotnet test --no-restore MissionSystem/MissionSystem.Tests
+        run: dotnet test --no-restore MissionSystem/TheLightingController.Tests
