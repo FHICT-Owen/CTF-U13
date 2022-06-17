@@ -22,6 +22,7 @@ public class CTFLogic : BaseGame
 
     public async override Task Setup()
     {
+        timer.Start += Start;
         timer.Update += Update;
 
         await GetGadgets();
@@ -39,9 +40,13 @@ public class CTFLogic : BaseGame
                 //{
                 //    f.CapturedBy = 0;
                 //}
-
-                if (f.CapturePercentage >= 100)
+                if (f.CapturePercentage == 0 && f.Capturer != 0)
                 {
+                    effectsService.TriggerEffectAsync("start_press");
+                }
+                else if (f.CapturePercentage >= 100)
+                {
+                    effectsService.TriggerEffectAsync("capture");
                     f.CapturedBy = (int)f.Capturer;
                 }
 
@@ -111,18 +116,11 @@ public class CTFLogic : BaseGame
 
     public async override Task Start()
     {
-        //score.SetAll(0);
-
-        // score service:
-
-        // score.Set(score, team)
-        // score.Add(score, team)
-        // score.Remove(score, team)
-        // score.Get(team)
-        // score.SetAll(score)
-        // score.AddAll(score)
-        // score.RemoveAll(score)
-        // score.GetAll()
+    }
+    
+    public async void Start(object? sender, EventArgs eventArgs)
+    {
+        await effectsService.TriggerEffectAsync("start_game");
     }
 
     private async void OnGameEnd()
@@ -165,6 +163,12 @@ public class CTFLogic : BaseGame
         };
 
         updateHandler?.Invoke(this, JsonConvert.SerializeObject(d));
+    }
+
+    public override void Dispose()
+    {
+        base.Dispose();
+        OnGameEnd();
     }
 
     public struct Data

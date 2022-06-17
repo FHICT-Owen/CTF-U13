@@ -72,7 +72,7 @@ public abstract class BaseGame : IBaseGame
         return timer;
     }
 
-    public void Dispose()
+    public virtual void Dispose()
     {
         timer.Dispose();
     }
