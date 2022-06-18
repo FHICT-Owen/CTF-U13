@@ -1,9 +1,7 @@
 using System.Net.NetworkInformation;
-using Microsoft.EntityFrameworkCore;
-using MissionSystem.Data;
+using MissionSystem.Data.Repository;
 using MissionSystem.Interface.Models;
 using MissionSystem.Interface.Services;
-using MissionSystem.Util;
 
 namespace MissionSystem.Main.Gadgets;
 
@@ -12,46 +10,45 @@ namespace MissionSystem.Main.Gadgets;
 /// Because gadgets can be added/removed while the system is running, it can
 /// also notify other services when this is done so they can update. themselves
 /// </summary>
-public class GadgetService : SubscribableResource<Gadget>, IGadgetService
+public class GadgetService : DataService<Gadget, PhysicalAddress>, IGadgetService
 {
+    public GadgetService(Func<IRepository<Gadget, PhysicalAddress>> repoFactory) : base(repoFactory)
+    {
+    }
+
     public async Task<List<Gadget>> GetGadgetsAsync()
     {
-        await using var db = new DataStore();
-        return await db.Gadgets.ToListAsync();
+        await using var repo = CreateRepo();
+        return await repo.Get();
     }
 
     public async Task<Gadget?> FindGadgetAsync(PhysicalAddress id)
     {
-        await using var db = new DataStore();
-        var gadget = await db.Gadgets.FindAsync(id);
-
-        return gadget;
+        await using var repo = CreateRepo();
+        return await repo.GetById(id);
     }
 
     public async Task UpdateGadgetAsync(Gadget gadget)
     {
-        await using var db = new DataStore();
-        db.Update(gadget);
-        await db.SaveChangesAsync();
+        await using var repo = CreateRepo();
+        repo.Update(gadget);
+        await repo.Save();
     }
 
     public async Task AddGadgetAsync(Gadget gadget)
     {
-        await using var db = new DataStore();
-        var entry = await db.Gadgets.AddAsync(gadget);
-        await db.SaveChangesAsync();
-
-        // Load type of this gadget
-        await entry.Reference(g => g.Type).LoadAsync();
+        await using var repo = CreateRepo();
+        await repo.Add(gadget);
+        await repo.Save();
 
         OnAdded(gadget);
     }
 
     public async Task DeleteGadgetAsync(Gadget gadget)
     {
-        await using var db = new DataStore();
-        db.Gadgets.Remove(gadget);
-        await db.SaveChangesAsync();
+        await using var repo = CreateRepo();
+        repo.Remove(gadget);
+        await repo.Save();
 
         OnDeleted(gadget);
     }

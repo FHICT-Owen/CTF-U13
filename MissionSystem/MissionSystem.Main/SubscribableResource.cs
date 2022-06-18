@@ -1,4 +1,6 @@
-namespace MissionSystem.Util;
+using MissionSystem.Interface;
+
+namespace MissionSystem.Main;
 
 public abstract class SubscribableResource<T> : ISubscribableResource<T>
 {

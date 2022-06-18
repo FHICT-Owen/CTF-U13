@@ -1,4 +1,4 @@
-namespace MissionSystem.Util;
+namespace MissionSystem.Interface;
 
 /// <summary>
 /// A class which can be used to subscribe to a resource
