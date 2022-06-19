@@ -74,6 +74,18 @@ public class LightingControllerClientTests
 
         await client.PressButton("foo");
     }
+    
+    [Test]
+    public async Task ShouldUpdateBpm()
+    {
+        var connectionMock = new Mock<ILightingControllerConnection>();
+        var client = new LightingControllerClient(connectionMock.Object);
+
+        await client.UpdateBpm(120);
+        
+        connectionMock
+            .Verify(c => c.SendMessageAsync("BPM|120", It.IsAny<CancellationToken>()));
+    }
 
     [Test]
     public async Task ShouldClose()
