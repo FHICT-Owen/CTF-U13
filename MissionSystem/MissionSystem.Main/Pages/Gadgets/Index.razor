@@ -1,0 +1,139 @@
+@page "/gadgets"
+@using MissionSystem.Interface.Models
+@using MissionSystem.Util
+@using MissionSystem.Interface.Services
+@using System.Net.NetworkInformation
+@implements IDisposable
+@inject IGadgetService GadgetService
+@inject IGadgetStateService GadgetStateService
+
+<style>
+    body {
+        padding: 20px;
+    }
+</style>
+
+<h2>Gadgets</h2>
+
+<div class="mb-2">
+    <h3>New</h3>
+
+    <GadgetForm Gadget="_newGadget" OnSubmit="OnGadgetCreate" IsNewGadget="true"></GadgetForm>
+</div>
+
+<h3>List</h3>
+
+<table class="table">
+    <thead>
+    <tr>
+        <td>Name</td>
+        <td>Type</td>
+        <td>Address</td>
+        <td>Last seen</td>
+        <td>Actions</td>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var (_, gadget) in _gadgets)
+    {
+        <tr>
+            <td>@gadget.Name</td>
+            <td>@gadget.Type.Name</td>
+            <td>@gadget.MacAddress.ToFormattedString()</td>
+            <td>
+                @if (_lastSeen.ContainsKey(gadget.MacAddress))
+                {
+                    <span>@_lastSeen[gadget.MacAddress].ToRelativeString(DateTime.Now)</span>
+                }
+                else
+                {
+                    <span>never</span>
+                }
+            </td>
+            <td>
+                <a class="btn btn-warning" href="/gadgets/edit/@gadget.MacAddress">
+                    <i class="bi bi-pencil"></i>
+                </a>
+                <button class="btn btn-danger" @onclick="() => DeleteGadget(gadget)">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+@code {
+    private Gadget _newGadget = new();
+
+    private readonly Dictionary<PhysicalAddress, Gadget> _gadgets = new();
+
+    private readonly Dictionary<PhysicalAddress, DateTime> _lastSeen = new();
+
+    private readonly Dictionary<PhysicalAddress, IUnsubscribable> _subscriptions = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        foreach (var gadget in await GadgetService.GetGadgetsAsync())
+        {
+            _gadgets[gadget.MacAddress] = gadget;
+            _subscriptions[gadget.MacAddress] = GadgetStateService.StateUpdatesOf(gadget.MacAddress, (timestamp, _) => OnGadgetStateUpdate(gadget.MacAddress, timestamp));
+        }
+
+        GadgetService.Added += OnGadgetAdded;
+        GadgetService.Deleted += OnGadgetDeleted;
+    }
+
+    private void OnGadgetAdded(Gadget gadget)
+    {
+        _subscriptions[gadget.MacAddress] = GadgetStateService.StateUpdatesOf(gadget.MacAddress, (timestamp, _) => OnGadgetStateUpdate(gadget.MacAddress, timestamp));
+        InvokeAsync(() =>
+        {
+            _gadgets[gadget.MacAddress] = gadget;
+            StateHasChanged();
+        });
+    }
+
+    private void OnGadgetStateUpdate(PhysicalAddress address, DateTime timestamp)
+    {
+        InvokeAsync(() =>
+        {
+            _lastSeen[address] = timestamp;
+            StateHasChanged();
+        });
+    }
+
+    private void OnGadgetDeleted(Gadget gadget)
+    {
+        _subscriptions.Remove(gadget.MacAddress, out var unsub);
+        unsub?.Dispose();
+        InvokeAsync(() =>
+        {
+            _gadgets.Remove(gadget.MacAddress);
+            StateHasChanged();
+        });
+    }
+
+    public void Dispose()
+    {
+        foreach (var (_, unsub) in _subscriptions)
+        {
+            unsub.Dispose();
+        }
+
+        GadgetService.Added -= OnGadgetAdded;
+        GadgetService.Deleted -= OnGadgetDeleted;
+    }
+
+    private async void DeleteGadget(Gadget gadget)
+    {
+        await GadgetService.DeleteGadgetAsync(gadget);
+    }
+
+    private async void OnGadgetCreate(Gadget gadget)
+    {
+        _newGadget = new Gadget();
+        await GadgetService.AddGadgetAsync(gadget);
+    }
+
+}

@@ -1,0 +1,15 @@
+<div class="progress" style="background-color: @BackgroundColor">
+    <div class="progress-bar" role="progressbar" style="width: @Progress%; background-color: @ForegroundColor;" aria-valuenow="@Progress" aria-valuemin="0" aria-valuemax="100"></div>
+</div>
+
+@code {
+
+    [Parameter]
+    public long Progress { get; set; } = 0;
+    
+    [Parameter]
+    public string BackgroundColor { get; set; }
+
+    [Parameter]
+    public string ForegroundColor { get; set; }
+}

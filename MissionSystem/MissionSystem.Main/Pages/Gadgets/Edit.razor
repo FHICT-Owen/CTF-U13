@@ -1,0 +1,35 @@
+@page "/gadgets/edit/{gadgetId}"
+@using MissionSystem.Interface.Services
+@using MissionSystem.Interface.Models
+@using System.Net.NetworkInformation
+@inject IGadgetService GadgetService
+@inject NavigationManager NavigationManager
+
+<h3>Edit Gadget</h3>
+
+@if (_gadget != null)
+{
+    <GadgetForm Gadget="_gadget" OnSubmit="OnSubmit" IsNewGadget="false"></GadgetForm>
+}
+
+@code {
+
+    private Gadget? _gadget;
+
+    [Parameter]
+    public string gadgetId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var address = PhysicalAddress.Parse(gadgetId);
+
+        _gadget = await GadgetService.FindGadgetAsync(address);
+    }
+
+    private async void OnSubmit(Gadget gadget)
+    {
+        await GadgetService.UpdateGadgetAsync(gadget);
+        NavigationManager.NavigateTo("/gadgets");
+    }
+
+}

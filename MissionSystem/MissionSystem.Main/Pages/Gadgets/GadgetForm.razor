@@ -1,0 +1,60 @@
+@using MissionSystem.Interface.Services
+@using MissionSystem.Interface.Models
+@inject IGadgetService GadgetService
+@inject IGadgetTypeService GadgetTypeService
+
+<EditForm Model="@Gadget" OnValidSubmit="@HandleValidSubmit">
+    <DataAnnotationsValidator/>
+    <ValidationSummary/>
+
+    <div class="mb-3">
+        <label for="macInput" class="form-label">MAC-address</label>
+        <PhysicalAddressInput disabled="@(!IsNewGadget)" required id="macInput" class="form-control" placeholder="Enter MAC address" @bind-Value="Gadget.MacAddress" ParsingErrorMessage="Invalid MAC-address"/>
+    </div>
+
+    <div class="mb-3">
+        <label for="typeInput" class="form-label">Type</label>
+        <InputSelect disabled="@(!IsNewGadget)" required id="typeInput" class="form-select" @bind-Value="Gadget.TypeId">
+            @if (_gadgetTypes != null)
+            {
+                <option selected disabled value="">Select&hellip;</option>
+                foreach (var type in _gadgetTypes)
+                {
+                    <option value="@type.Id">@type.Name</option>
+                }
+            }
+        </InputSelect>
+    </div>
+
+    <div class="mb-3">
+        <label for="nameInput" class="form-label">Name</label>
+        <InputText required id="nameInput" class="form-control" @bind-Value="Gadget.Name"/>
+    </div>
+
+    <button class="btn btn-primary" type="submit">Submit</button>
+</EditForm>
+
+@code {
+
+    [Parameter]
+    public Gadget Gadget { get; set; }
+    
+    [Parameter]
+    public bool IsNewGadget { get; set; }
+    
+    [Parameter]
+    public EventCallback<Gadget> OnSubmit { get; set; }
+
+    private List<GadgetType>? _gadgetTypes;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _gadgetTypes = await GadgetTypeService.GetGadgetTypesAsync();
+    }
+
+    async void HandleValidSubmit()
+    {
+        await OnSubmit.InvokeAsync(Gadget);
+    }
+
+}

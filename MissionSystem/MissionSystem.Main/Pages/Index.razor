@@ -1,0 +1,457 @@
+@page "/"
+@page "/view/{viewtype}"
+@using MissionSystem.Interface.Models
+@using MissionSystem.Main.Gadgets
+@using MissionSystem.Interface
+@using MissionSystem.Interface.Services
+@using MissionSystem.Interface.Timer
+
+@using MissionSystem.Main.Pages.Gadgets
+
+@using Newtonsoft.Json
+@using Newtonsoft.Json.Linq
+@using System.Net.NetworkInformation
+
+@implements IDisposable
+@inject IGadgetStateService _gadgetState
+@inject IGadgetService _gadget
+
+@inject IGameService _game
+@inject ILogger<Index> _logger
+@inject IArenaService _arena
+
+<PageTitle>CTF Demo</PageTitle>
+
+@if (redirectToArena)
+{
+    <meta http-equiv="refresh" content="0; url = /arenas" />
+}
+
+<div class="arena-bar">
+    @{
+        if (activeArena != null) foreach (Arena a in Arenas)
+            {
+                <button id="a.Name" class=@(a == activeArena ? "nav active" : "nav") @onclick='() => SetArena(a)'>
+                    @a.Name
+                </button>
+            }
+    }
+
+    @{
+        if (viewtype == null)
+        {
+            <button id="settings" class="settings" @onclick='() => Settings()'>
+                <i class="bi bi-gear-fill"></i>
+        </button>
+    }
+    }
+</div>
+
+<div class="timer-bar">
+    @{
+        if (viewtype == null) { if (!_started)
+        {
+            <button class="btn btn-outline-success" @onclick="@StartMatch">Start</button>
+        }
+        else
+        {
+            <button class="btn btn-outline-danger" @onclick="@StopMatch">Stop</button>
+        } }
+        
+    }
+    <div class="timer">
+        <span>@(_timer?.ToString() ?? "No current game")</span>
+    </div>
+    @if (viewtype == null)
+    {
+        <button class="btn btn-outline-warning" @onclick="@ResetMatch">Reset</button>
+    }
+</div>
+
+@{
+    if (activeArena == null || currentGame == null)
+    {
+        <h1 style="">No current game</h1>
+    }
+    else
+    {
+        <div class="demo" style=@GetColumnAmount()>
+            <div class="score">
+                <h2>Team Green</h2>
+                <span>@(team1Score | 0)</span>
+            </div>
+            @{
+                foreach (string address in Addresses)
+                {
+                    @if (!FlagStates.ContainsKey(address)) FlagStates[address] = new FlagState();
+
+                    <div class="status" id=@address>
+                        @*<span class="oi oi-flag flag" />*@
+                        <div class="flag" style="position: relative; width: 50%; height: 30vh">
+
+                            <i class="bi bi-flag-fill" style="font-size: 150px; position: absolute; left: 25%; color: @FlagStates[address].BackgroundColor"></i>
+                            <i class="bi bi-flag" style="font-size: 150px; position: absolute; left: 25%"></i>
+                        </div>
+                        <ProgressBar Progress="@FlagStates[address].CapturePercentage" ForegroundColor="@FlagStates[address].ForegroundColor" BackgroundColor="@FlagStates[address].BackgroundColor"></ProgressBar>
+                    </div>
+                }
+
+
+            }
+            <div class="score red">
+                <h2>Team Red</h2>
+                <span>@(team2Score | 0)</span>
+            </div>
+        </div>
+    }
+}
+
+
+@{
+    if (settings)
+    {
+        <div style="    opacity: 0.5;
+                                background-color: #ccc;
+                                position: absolute;
+                                width: 100vw;
+                                height: 100vh;
+                                top: 0;
+" @onclick="() => settings = false">
+        </div>
+        <div class="matchcreation">
+            <MatchCreationForm OnMatchCreate="@CreateMatch" />
+        </div>
+    }
+}
+
+@code {
+    [Parameter]
+    public string viewtype { get; set; }
+
+    private Dictionary<string, FlagState> FlagStates = new();
+
+    private bool _started = false;
+
+    private bool settings = false;
+
+    private Arena activeArena;
+
+    private IBaseGame currentGame;
+    private ITimer? _timer;
+
+    private bool redirectToArena = false;
+
+    private int team1Score;
+    private int team2Score;
+
+    private IDisposable? _subscription;
+
+    private List<string> Addresses = new();
+
+    private List<Arena> Arenas = new();
+
+    protected async override Task OnInitializedAsync()
+    {
+        _gadget.Added += GetAddresses;
+        _gadget.Deleted += GetAddresses;
+
+        // _subscription = _gadgets.StateUpdatesOf(PhysicalAddress.Parse("44:17:93:87:D3:DC"), OnFlagUpdate);
+        Arenas = await _arena.GetArenasAsync();
+        _arena.Added += Add;
+        _arena.Deleted += Delete;
+        _game.Added += Add;
+
+        if (Arenas.Count < 1)
+        {
+            redirectToArena = true;
+            return;
+        }
+        activeArena = Arenas[0];
+
+        if (activeArena.Game == null) return;
+
+        if (activeArena.Game.BaseGame == null) activeArena.Game.BaseGame = _game.GetBaseGame(activeArena.Game);
+        currentGame = activeArena.Game.BaseGame;
+
+        // currentGame = _game.GetGame("CTF", activeArena);
+        currentGame.updateHandler += Update;
+
+        _timer = currentGame.GetTimer();
+
+        _timer.Update += OnTick;
+
+        GetAddresses();
+
+    }
+
+    private async Task GetArenas()
+    {
+        Arenas = await _arena.GetArenasAsync();
+    }
+
+    private void GetAddresses(Gadget g = null)
+    {
+        if (currentGame == null) return;
+        string data = currentGame.GetData();
+        Addresses = JsonConvert.DeserializeObject<List<string>>(data);
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SetArena(Arena arena)
+    {
+        int id = arena.Id;
+
+        await GetArenas();
+
+        if (_timer != null)
+        {
+            _timer.Update -= OnTick;
+            _timer = null;
+        }
+
+        activeArena = Arenas.First(a => a.Id == id);
+
+
+        if (currentGame != null) currentGame.updateHandler -= Update;
+
+        if (activeArena.Game== null) {
+            currentGame = null;
+            return;
+        }
+
+        currentGame = activeArena.Game.BaseGame;
+        currentGame.updateHandler += Update;
+
+        if (_timer != null) _timer.Update -= OnTick;
+        _timer = currentGame.GetTimer();
+        _timer.Update += OnTick;
+
+        _started = _timer.IsRunning;
+
+        GetAddresses();
+
+        InvokeAsync(StateHasChanged);
+
+    }
+
+    private struct UpdateData
+    {
+        public int Team1Score;
+        public int Team2Score;
+        public Dictionary<string, FlagState>? FlagStates;
+    };
+
+    private struct FlagState
+    {
+        public long CapturePercentage = 0;
+        public long Capturer = 0;
+        public long? CapturedBy = 0;
+        public string? Address = "";
+        public string? BackgroundColor = "#8D99AE";
+        public string? ForegroundColor = "";
+        public FlagState() { }
+    };
+
+    private void Update(object? sender, string data)
+    {
+        if (string.IsNullOrEmpty(data)) return;
+
+        UpdateData d = JsonConvert.DeserializeObject<UpdateData>(data);
+
+        team1Score = d.Team1Score;
+        team2Score = d.Team2Score;
+
+        foreach (KeyValuePair<string, FlagState> kvPair in d.FlagStates)
+        {
+            FlagState f = kvPair.Value;
+            string address = kvPair.Value.Address;
+
+            switch (f.Capturer)
+            {
+                case 0:
+                    f.ForegroundColor = "#342e37";
+                    break;
+                case 1:
+                    f.ForegroundColor = "#00ff00";
+                    break;
+                case 2:
+                    f.ForegroundColor = "#ff0000";
+                    break;
+
+            }
+            if (f.CapturePercentage == 100)
+            {
+                f.CapturedBy = f.Capturer;
+                if (f.Capturer == 1) f.BackgroundColor = "#00FF00";
+                if (f.Capturer == 2) f.BackgroundColor = "#FF0000";
+            }
+
+            FlagStates[kvPair.Key] = f;
+        }
+
+        _started = _timer?.IsRunning ?? false;
+
+        InvokeAsync(StateHasChanged);
+
+    }
+
+    private void StartMatch()
+    {
+        if (_timer == null) return;
+
+        _started = true;
+
+        _timer.StartTimer();
+    }
+
+    private void OnTick(object? sender, EventArgs e)
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task CreateMatch(Match match)
+    {
+        _game.DeleteMatchesByArenaAsync(match.Arena);
+        await _game.CreateMatchAsync(match);
+        settings = false;
+        int arenaId = match.Arena.Id;
+
+        await _arena.UpdateArenaAsync(match.Arena);
+        Arenas = await _arena.GetArenasAsync();
+
+        SetArena(match.Arena);
+    }
+
+    private void Add(Arena a)
+    {
+        InvokeAsync(() =>
+        {
+            Arenas.Add(a);
+            StateHasChanged();
+        });
+
+        foreach (Arena arena in Arenas)
+        {
+            Console.WriteLine(arena.Name);
+        }
+    }
+
+    private void Add(Match m)
+    {
+        GetArenas();
+
+        Arenas.FirstOrDefault(a => a.Id == m.Arena.Id).Game = m;
+        if (activeArena.Id == m.Arena.Id)
+        {
+            activeArena.Game = m;
+            currentGame.updateHandler -= Update;
+
+            currentGame = m.BaseGame ?? _game.GetBaseGame(m);
+            currentGame.updateHandler += Update;
+
+            _timer = currentGame.GetTimer();
+        }
+        InvokeAsync(() =>
+        {
+
+
+            StateHasChanged();
+        });
+
+    }
+
+    private void Delete(Arena a)
+    {
+        InvokeAsync(() =>
+        {
+            Arenas.RemoveAll(arena => a.Id == arena.Id);
+
+            StateHasChanged();
+        });
+    }
+
+    private void StopMatch()
+    {
+        if (_timer == null) return;
+
+        _started = false;
+
+        _timer.StopTimer();
+    }
+
+    private void ResetMatch()
+    {
+        if (_timer == null) return;
+
+        _started = false;
+        _timer.ResetTimer();
+        currentGame.ResetGame();
+    }
+
+    private void Settings()
+    {
+        settings = true;
+    }
+
+    //private void OnFlagUpdate(Dictionary<string, object> state)
+    //{
+    //    try
+    //    {
+    //        _capturedBy = $"Team {state["CapturedBy"]}";
+    //        _capturePercentage = (long)state["CapturePercentage"];
+    //        InvokeAsync(StateHasChanged);
+    //    }
+    //    catch (Exception e)
+    //    {
+    //// TODO: should log or something
+    //        _logger.LogError("Could not parse flag state");
+    //    }
+    //}
+
+    //private void OnFlagUpdate(Dictionary<string, object> state)
+    //{
+    //    try
+    //    {
+    //        var flagState = FlagState.FromRaw(state);
+
+    //        switch (flagState.Capturer)
+    //        {
+    //            case 0:
+    //                _capturedBy = "none";
+    //                break;
+    //            case 1:
+    //                _capturedBy = "Team 1";
+    //                break;
+    //            case 2:
+    //                _capturedBy = "Team 2";
+    //                break;
+    //        }
+
+    //        InvokeAsync(StateHasChanged);
+    //    }
+    //    catch (Exception e)
+    //    {
+    //        // TODO: should log or something
+    //        _logger.LogError("Could not parse flag state");
+    //    }
+    //}
+
+    private string GetColumnAmount()
+    {
+        string s = "grid-template-columns: 1fr";
+        for (int i = 0; i <= Addresses.Count; i++)
+        {
+            s += " 1fr";
+
+        }
+        return s;
+    }
+
+    public void Dispose()
+    {
+        _arena.Deleted -= Delete;
+        _arena.Added -= Add;
+        _subscription?.Dispose();
+    }
+
+}

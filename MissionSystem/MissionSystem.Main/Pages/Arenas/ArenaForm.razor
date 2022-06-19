@@ -1,0 +1,27 @@
+@using MissionSystem.Interface.Models
+<EditForm Model="@Arena" OnValidSubmit="@HandleValidSubmit">
+    <DataAnnotationsValidator/>
+    <ValidationSummary/>
+
+    <div class="mb-3">
+        <label for="nameInput" class="form-label">Name</label>
+        <InputText required id="nameInput" class="form-control" @bind-Value="Arena.Name"/>
+    </div>
+
+    <button class="btn btn-primary" type="submit">Submit</button>
+</EditForm>
+
+@code {
+
+    [Parameter]
+    public Arena Arena { get; set; }
+
+    [Parameter]
+    public EventCallback<Arena> OnSubmit { get; set; }
+
+    async void HandleValidSubmit()
+    {
+        await OnSubmit.InvokeAsync(Arena);
+    }
+
+}

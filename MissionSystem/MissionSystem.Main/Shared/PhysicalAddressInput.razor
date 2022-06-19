@@ -1,0 +1,48 @@
+@using MissionSystem.Util
+@using System.Text.RegularExpressions
+@using System.Net.NetworkInformation
+@inherits InputBase<System.Net.NetworkInformation.PhysicalAddress>
+
+<input @bind="CurrentValueAsString" class="@CssClass" @attributes="@AdditionalAttributes"/>
+
+@code {
+
+    [Parameter]
+    public string ParsingErrorMessage { get; set; }
+
+    static Regex _regex = new("^([0-9A-F]{2}[:-]){5}([0-9A-F]{2})$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+    protected override bool TryParseValueFromString(string? value, out PhysicalAddress result, out string? validationErrorMessage)
+    {
+        if (value == null)
+        {
+            result = PhysicalAddress.None;
+            validationErrorMessage = ParsingErrorMessage;
+            return false;
+        }
+
+        var match = _regex.Match(value);
+
+        if (!match.Success)
+        {
+            result = PhysicalAddress.None;
+            validationErrorMessage = ParsingErrorMessage;
+            return false;
+        }
+
+        if (!PhysicalAddress.TryParse(value, out result))
+        {
+            validationErrorMessage = ParsingErrorMessage;
+            return false;
+        }
+
+        validationErrorMessage = null;
+        return true;
+    }
+
+    protected override string? FormatValueAsString(PhysicalAddress? value)
+    {
+        return value?.ToFormattedString();
+    }
+
+}

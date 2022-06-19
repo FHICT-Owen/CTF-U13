@@ -1,0 +1,33 @@
+@page "/arenas/edit/{Id:int}"
+@using MissionSystem.Interface.Services
+@using MissionSystem.Interface.Models
+@using System.Net.NetworkInformation
+@inject IArenaService ArenaService
+@inject NavigationManager NavigationManager
+
+<h3>Edit Arena</h3>
+
+@if (_arena != null)
+{
+    <ArenaForm Arena="@_arena" OnSubmit="OnSubmit"></ArenaForm>
+}
+
+@code {
+
+    private Arena? _arena;
+
+    [Parameter]
+    public int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _arena = await ArenaService.FindArenaAsync(Id);
+    }
+
+    private async void OnSubmit(Arena arena)
+    {
+        await ArenaService.UpdateArenaAsync(arena);
+        NavigationManager.NavigateTo("/arenas");
+    }
+
+}
