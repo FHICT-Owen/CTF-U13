@@ -58,19 +58,33 @@ public class LightingControllerClientTests
     }
 
     [Test]
-    public async Task ShouldPressAndReleaseButton()
+    public async Task ShouldReleaseAndPressButton()
     {
-        var connectionMock = new Mock<ILightingControllerConnection>();
-        using var client = new LightingControllerClient(connectionMock.Object);
+        var connectionMock = new Mock<ILightingControllerConnection>(MockBehavior.Strict);
+        var sequence = new MockSequence();
 
-        connectionMock
-            .Setup(c => c.ReceiveMessageAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync("ERROR|Invalid password");
+        connectionMock.InSequence(sequence)
+            .Setup(c => c.SendMessageAsync("BUTTON_RELEASE|foo", It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+        connectionMock.InSequence(sequence)
+            .Setup(c => c.SendMessageAsync("BUTTON_PRESS|foo", It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+        
+        var client = new LightingControllerClient(connectionMock.Object);
 
         await client.PressButton("foo");
+    }
+    
+    [Test]
+    public async Task ShouldUpdateBpm()
+    {
+        var connectionMock = new Mock<ILightingControllerConnection>();
+        var client = new LightingControllerClient(connectionMock.Object);
 
-        connectionMock.Verify(c => c.SendMessageAsync("BUTTON_PRESS|foo", It.IsAny<CancellationToken>()));
-        connectionMock.Verify(c => c.SendMessageAsync("BUTTON_RELEASE|foo", It.IsAny<CancellationToken>()));
+        await client.UpdateBpm(120);
+        
+        connectionMock
+            .Verify(c => c.SendMessageAsync("BPM|120", It.IsAny<CancellationToken>()));
     }
 
     [Test]
