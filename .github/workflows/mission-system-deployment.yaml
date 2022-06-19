@@ -26,4 +26,4 @@ jobs:
           context: ./MissionSystem
           file: ./MissionSystem/MissionSystem.Main/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/mission-system:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/mission-system:latest
